@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Editar Cliente - Oasis Digital</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+    </style>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "var(--color-primary)",
+              accent: "var(--color-accent)",
+              "background-light": "#f6f8f7",
+              "background-dark": "#121212",
+              "surface-dark": "#1D2E24",
+              "border-dark": "#2A2A2A",
+              "text-light": "#EAEAEA",
+              "text-dark": "#B0B0B0",
+            },
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "var(--border-radius)",
+              lg: "var(--border-radius)",
+              xl: "calc(var(--border-radius) + 0.25rem)",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-background-dark font-display text-text-main">
+    <div class="relative flex h-auto min-h-screen w-full flex-col">
+      <div class="flex h-full min-w-0 flex-1">
+        <!-- SideNavBar -->
+        <aside
+          class="flex h-screen min-h-full w-64 flex-shrink-0 flex-col justify-between bg-component-dark p-4 sticky top-0"
+        >
+          <div class="flex flex-col gap-6">
+            <div class="flex items-center gap-3">
+              <div
+                class="flex items-center justify-center bg-primary/20 rounded-full size-10 text-primary"
+              >
+                <span class="material-symbols-outlined">person</span>
+              </div>
+              <div class="flex flex-col">
+                <h1 class="text-text-main text-base font-bold">
+                  Oasis Digital
+                </h1>
+                <p class="text-text-secondary text-sm font-normal">
+                  Gestión Hotelera
+                </p>
+              </div>
+            </div>
+            <nav class="flex flex-col gap-2">
+              <a
+                class="flex items-center gap-3 rounded-lg px-3 py-2 text-text-secondary hover:bg-[#121212]/10"
+                th:href="@{/dashboard}"
+              >
+                <span class="material-symbols-outlined text-text-secondary"
+                  >dashboard</span
+                >
+                <p class="text-sm font-medium">Dashboard</p>
+              </a>
+              <a
+                class="flex items-center gap-3 rounded-lg px-3 py-2 text-text-secondary hover:bg-[#121212]/10"
+                th:href="@{/reservas}"
+              >
+                <span class="material-symbols-outlined text-text-secondary"
+                  >calendar_add_on</span
+                >
+                <p class="text-sm font-medium">Reservas</p>
+              </a>
+              <a
+                class="flex items-center gap-3 rounded-lg bg-primary px-3 py-2 text-white"
+                th:href="@{/clientes}"
+              >
+                <span
+                  class="material-symbols-outlined text-white"
+                  style="font-variation-settings: 'FILL' 1"
+                  >person</span
+                >
+                <p class="text-sm font-bold">Gestión de Clientes</p>
+              </a>
+              <a
+                class="flex items-center gap-3 rounded-lg px-3 py-2 text-text-secondary hover:bg-[#121212]/10"
+                th:href="@{/habitaciones}"
+              >
+                <span class="material-symbols-outlined text-text-secondary"
+                  >bed</span
+                >
+                <p class="text-sm font-medium">Habitaciones</p>
+              </a>
+              <a
+                class="flex items-center gap-3 rounded-lg px-3 py-2 text-text-secondary hover:bg-[#121212]/10"
+                th:href="@{/usuarios}"
+              >
+                <span class="material-symbols-outlined text-text-secondary"
+                  >group</span
+                >
+                <p class="text-sm font-medium">Usuarios</p>
+              </a>
+            </nav>
+          </div>
+          <div class="flex flex-col gap-1">
+            <a
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-text-secondary hover:bg-[#121212]/10"
+              th:href="@{/configuracion}"
+            >
+              <span class="material-symbols-outlined text-text-secondary"
+                >settings</span
+              >
+              <p class="text-sm font-medium">Configuración</p>
+            </a>
+            <form th:action="@{/logout}" method="post" id="logoutFormEdit">
+              <button
+                type="button"
+                onclick="if(typeof showLogoutAnimation === 'function') { showLogoutAnimation(); setTimeout(() => { document.getElementById('logoutFormEdit').submit(); }, 2500); } else { document.getElementById('logoutFormEdit').submit(); }"
+                class="flex items-center gap-3 rounded-lg px-3 py-2 text-text-secondary hover:bg-[#121212]/10 w-full text-left"
+              >
+                <span class="material-symbols-outlined text-text-secondary"
+                  >logout</span
+                >
+                <p class="text-sm font-medium">Cerrar Sesión</p>
+              </button>
+            </form>
+          </div>
+        </aside>
+        <!-- Main Content -->
+        <main class="flex flex-1 flex-col p-8">
+          <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+            <!-- PageHeading -->
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="flex min-w-72 flex-col gap-2">
+                <h1
+                  class="text-text-main text-4xl font-black leading-tight tracking-tight"
+                >
+                  Editar Cliente
+                </h1>
+                <p class="text-text-secondary text-base font-normal">
+                  Modificar datos de
+                  <span th:text="${cliente.nombres}">Cliente</span>
+                </p>
+              </div>
+              <a
+                th:href="@{/clientes}"
+                class="flex items-center gap-2 text-text-secondary hover:text-white transition-colors"
+              >
+                <span class="material-symbols-outlined">arrow_back</span> Volver
+              </a>
+            </div>
+
+            <!-- Toast Notifications -->
+            <div
+              th:if="${errorMessage}"
+              class="p-4 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined">error</span>
+              <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Form -->
+            <div
+              class="bg-component-dark rounded-xl border border-border-color p-8"
+            >
+              <form
+                th:action="@{/clientes/editar/{id}(id=${cliente.id})}"
+                th:object="${cliente}"
+                method="post"
+                class="flex flex-col gap-8"
+              >
+                <input type="hidden" th:field="*{id}" />
+
+                <!-- Datos Personales -->
+                <div>
+                  <h3
+                    class="text-xl font-bold text-white mb-4 flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-accent"
+                      >person</span
+                    >
+                    Datos Personales
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <label class="flex flex-col gap-2">
+                      <span class="text-sm font-medium text-text-secondary"
+                        >Nombres</span
+                      >
+                      <input
+                        type="text"
+                        th:field="*{nombres}"
+                        required
+                        class="form-input rounded-lg bg-background-dark border-border-color text-text-main focus:ring-accent focus:border-accent"
+                      />
+                    </label>
+                    <label class="flex flex-col gap-2">
+                      <span class="text-sm font-medium text-text-secondary"
+                        >Apellidos</span
+                      >
+                      <input
+                        type="text"
+                        th:field="*{apellidos}"
+                        required
+                        class="form-input rounded-lg bg-background-dark border-border-color text-text-main focus:ring-accent focus:border-accent"
+                      />
+                    </label>
+                    <label class="flex flex-col gap-2">
+                      <span class="text-sm font-medium text-text-secondary"
+                        >DNI / Documento</span
+                      >
+                      <input
+                        type="text"
+                        th:field="*{dni}"
+                        required
+                        pattern="\d{8}"
+                        maxlength="8"
+                        title="Debe contener 8 dígitos"
+                        class="form-input rounded-lg bg-background-dark border-border-color text-text-main focus:ring-accent focus:border-accent"
+                      />
+                    </label>
+                    <label class="flex flex-col gap-2">
+                      <span class="text-sm font-medium text-text-secondary"
+                        >Teléfono</span
+                      >
+                      <input
+                        type="tel"
+                        th:field="*{telefono}"
+                        required
+                        pattern="\d{9}"
+                        maxlength="9"
+                        title="Debe contener 9 dígitos"
+                        class="form-input rounded-lg bg-background-dark border-border-color text-text-main focus:ring-accent focus:border-accent"
+                      />
+                    </label>
+                    <label class="flex flex-col gap-2 md:col-span-2">
+                      <span class="text-sm font-medium text-text-secondary"
+                        >Correo Electrónico</span
+                      >
+                      <input
+                        type="email"
+                        th:field="*{email}"
+                        required
+                        class="form-input rounded-lg bg-background-dark border-border-color text-text-main focus:ring-accent focus:border-accent"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Datos de Cuenta -->
+                <div class="border-t border-border-color pt-6">
+                  <h3
+                    class="text-xl font-bold text-white mb-4 flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-accent"
+                      >badge</span
+                    >
+                    Datos de Cuenta
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <label class="flex flex-col gap-2">
+                      <span class="text-sm font-medium text-text-secondary"
+                        >Nombre de Usuario</span
+                      >
+                      <input
+                        type="text"
+                        th:field="*{username}"
+                        required
+                        class="form-input rounded-lg bg-background-dark border-border-color text-text-main focus:ring-accent focus:border-accent"
+                      />
+                    </label>
+                    <label class="flex flex-col gap-2">
+                      <span class="text-sm font-medium text-text-secondary"
+                        >Nueva Contraseña (Opcional)</span
+                      >
+                      <input
+                        type="password"
+                        name="newPassword"
+                        class="form-input rounded-lg bg-background-dark border-border-color text-text-main focus:ring-accent focus:border-accent"
+                        placeholder="Dejar en blanco para mantener"
+                      />
+                      <span
+                        class="text-xs text-yellow-500 flex items-center gap-1"
+                        ><span class="material-symbols-outlined text-sm"
+                          >warning</span
+                        >
+                        Si desea cambiar la contraseña, ingrese una nueva.</span
+                      >
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Botones -->
+                <div
+                  class="flex justify-between items-center mt-4 pt-4 border-t border-border-color"
+                >
+                  <button
+                    type="button"
+                    onclick="if(confirm('¿Está seguro de eliminar este cliente? Esta acción no se puede deshacer.')) document.getElementById('deleteForm').submit();"
+                    class="px-6 py-2 rounded-lg border border-red-500/50 text-red-400 hover:bg-red-500/10 transition-colors font-medium flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                    Eliminar Cliente
+                  </button>
+                  <div class="flex gap-4">
+                    <a
+                      th:href="@{/clientes}"
+                      class="px-6 py-2 rounded-lg border border-border-color text-text-secondary hover:bg-[#121212]/5 transition-colors font-medium"
+                      >Cancelar</a
+                    >
+                    <button
+                      type="submit"
+                      class="px-6 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors font-bold shadow-lg shadow-primary/20 flex items-center gap-2"
+                    >
+                      <span class="material-symbols-outlined">save</span>
+                      Actualizar Cliente
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <!-- Formulario oculto para eliminar -->
+              <form
+                id="deleteForm"
+                th:action="@{/clientes/eliminar/{id}(id=${cliente.id})}"
+                method="post"
+                class="hidden"
+              ></form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script th:src="@{/js/auth-animations.js}"></script>
+  </body>
+</html>

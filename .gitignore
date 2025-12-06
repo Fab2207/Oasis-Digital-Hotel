@@ -1,0 +1,31 @@
+# Directorios de compilación y empaquetado
+target/
+
+# Archivos de la IDE
+.vscode/
+.idea/
+*.iws
+*.iml
+*.ipr
+.project
+.classpath
+.settings/
+
+# Archivos generados de Maven
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Archivos de registro y temporales
+*.log
+logs/
+
+# Archivos de configuración locales
+ src/main/resources/application.properties
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+### VS Code ###
+.vscode/

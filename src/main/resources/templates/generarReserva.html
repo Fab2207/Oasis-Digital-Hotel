@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+          <div class="max-w-4xl mx-auto flex flex-col gap-8">
+            <!-- PageHeading -->
+            <div class="flex flex-col gap-2">
+              <h1 class="text-white text-4xl font-black tracking-tight">
+                Nueva Reserva
+              </h1>
+              <p class="text-white/60 text-lg font-medium">
+                Seleccione las fechas y el tipo de habitación para su estancia.
+              </p>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div
+              th:if="${errorMessage}"
+              class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3 animate-fade-in"
+            >
+              <span class="material-symbols-outlined">error</span>
+              <span th:text="${errorMessage}">Error message</span>
+            </div>
+
+            <div
+              class="glass-panel rounded-2xl p-8 border border-white/10 shadow-xl relative overflow-hidden"
+            >
+              <!-- Decorative background -->
+              <div
+                class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"
+              ></div>
+
+              <form
+                th:action="@{/cliente/reservas/solicitar}"
+                method="post"
+                class="flex flex-col gap-8 relative z-10"
+              >
+                <!-- Selector de Cliente (Solo para Admin/Recepcionista) -->
+                <div
+                  sec:authorize="hasAnyAuthority('ROLE_ADMIN', 'ROLE_RECEPCIONISTA')"
+                  class="glass-panel p-6 rounded-xl border border-white/10 bg-white/5 mb-6"
+                >
+                  <h3
+                    class="text-lg font-bold text-white mb-4 flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-primary"
+                      >person_search</span
+                    >
+                    Reservar para Cliente
+                  </h3>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >DNI del Cliente</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >badge</span
+                        >
+                      </span>
+                      <input
+                        type="text"
+                        name="clienteDni"
+                        placeholder="Ingrese DNI del cliente"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                      />
+                    </div>
+                    <p class="text-xs text-white/40 mt-1">
+                      Deje en blanco para reservar a su nombre (si es cliente).
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Fecha Entrada -->
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Fecha de Llegada</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >calendar_today</span
+                        >
+                      </span>
+                      <input
+                        type="date"
+                        name="fechaEntrada"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        required
+                        th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Fecha Salida -->
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Fecha de Salida</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >event</span
+                        >
+                      </span>
+                      <input
+                        type="date"
+                        name="fechaSalida"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        required
+                        th:min="${#temporals.format(#temporals.createNow().plusDays(1), 'yyyy-MM-dd')}"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Horas de Entrada y Salida -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Hora de Entrada -->
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Hora de Entrada</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >schedule</span
+                        >
+                      </span>
+                      <input
+                        type="time"
+                        name="horaEntrada"
+                        value="14:00"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        required
+                      />
+                    </div>
+                    <p class="text-xs text-white/40 ml-1">
+                      Check-in: 14:00 hrs
+                    </p>
+                  </div>
+
+                  <!-- Hora de Salida -->
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Hora de Salida</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >schedule</span
+                        >
+                      </span>
+                      <input
+                        type="time"
+                        name="horaSalida"
+                        value="12:00"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        required
+                      />
+                    </div>
+                    <p class="text-xs text-white/40 ml-1">
+                      Check-out: 12:00 hrs
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Tipo de Habitación -->
+                <div class="space-y-3">
+                  <label
+                    class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                    >Tipo de Habitación</label
+                  >
+                  <div
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                  >
+                    <!-- Simple -->
+                    <label class="cursor-pointer group relative">
+                      <input
+                        type="radio"
+                        name="tipo"
+                        value="SIMPLE"
+                        class="peer sr-only"
+                        required
+                      />
+                      <div
+                        class="p-4 rounded-xl border border-white/10 bg-white/5 peer-checked:border-primary peer-checked:bg-primary/10 transition-all duration-300 hover:bg-white/10 hover:border-white/20 h-full flex flex-col gap-3 relative overflow-hidden"
+                      >
+                        <div
+                          class="absolute inset-0 bg-primary/5 opacity-0 peer-checked:opacity-100 transition-opacity duration-300"
+                        ></div>
+                        <div
+                          class="size-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 peer-checked:bg-primary peer-checked:text-white transition-colors duration-300"
+                        >
+                          <span class="material-symbols-outlined"
+                            >single_bed</span
+                          >
+                        </div>
+                        <div class="relative z-10">
+                          <p
+                            class="font-bold text-white peer-checked:text-primary transition-colors"
+                          >
+                            Simple
+                          </p>
+                          <p class="text-xs text-white/60">1 Persona</p>
+                        </div>
+                      </div>
+                    </label>
+
+                    <!-- Doble -->
+                    <label class="cursor-pointer group relative">
+                      <input
+                        type="radio"
+                        name="tipo"
+                        value="DOBLE"
+                        class="peer sr-only"
+                      />
+                      <div
+                        class="p-4 rounded-xl border border-white/10 bg-white/5 peer-checked:border-primary peer-checked:bg-primary/10 transition-all duration-300 hover:bg-white/10 hover:border-white/20 h-full flex flex-col gap-3 relative overflow-hidden"
+                      >
+                        <div
+                          class="absolute inset-0 bg-primary/5 opacity-0 peer-checked:opacity-100 transition-opacity duration-300"
+                        ></div>
+                        <div
+                          class="size-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 peer-checked:bg-primary peer-checked:text-white transition-colors duration-300"
+                        >
+                          <span class="material-symbols-outlined">bed</span>
+                        </div>
+                        <div class="relative z-10">
+                          <p
+                            class="font-bold text-white peer-checked:text-primary transition-colors"
+                          >
+                            Doble
+                          </p>
+                          <p class="text-xs text-white/60">2 Personas</p>
+                        </div>
+                      </div>
+                    </label>
+
+                    <!-- Matrimonial -->
+                    <label class="cursor-pointer group relative">
+                      <input
+                        type="radio"
+                        name="tipo"
+                        value="SUITE JUNIOR"
+                        class="peer sr-only"
+                      />
+                      <div
+                        class="p-4 rounded-xl border border-white/10 bg-white/5 peer-checked:border-primary peer-checked:bg-primary/10 transition-all duration-300 hover:bg-white/10 hover:border-white/20 h-full flex flex-col gap-3 relative overflow-hidden"
+                      >
+                        <div
+                          class="absolute inset-0 bg-primary/5 opacity-0 peer-checked:opacity-100 transition-opacity duration-300"
+                        ></div>
+                        <div
+                          class="size-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 peer-checked:bg-primary peer-checked:text-white transition-colors duration-300"
+                        >
+                          <span class="material-symbols-outlined"
+                            >king_bed</span
+                          >
+                        </div>
+                        <div class="relative z-10">
+                          <p
+                            class="font-bold text-white peer-checked:text-primary transition-colors"
+                          >
+                            Suite Junior
+                          </p>
+                          <p class="text-xs text-white/60">S/. 120.00</p>
+                        </div>
+                      </div>
+                    </label>
+
+                    <!-- Suite -->
+                    <label class="cursor-pointer group relative">
+                      <input
+                        type="radio"
+                        name="tipo"
+                        value="SUITE FAMILIAR"
+                        class="peer sr-only"
+                      />
+                      <div
+                        class="p-4 rounded-xl border border-white/10 bg-white/5 peer-checked:border-primary peer-checked:bg-primary/10 transition-all duration-300 hover:bg-white/10 hover:border-white/20 h-full flex flex-col gap-3 relative overflow-hidden"
+                      >
+                        <div
+                          class="absolute inset-0 bg-primary/5 opacity-0 peer-checked:opacity-100 transition-opacity duration-300"
+                        ></div>
+                        <div
+                          class="size-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 peer-checked:bg-primary peer-checked:text-white transition-colors duration-300"
+                        >
+                          <span class="material-symbols-outlined">diamond</span>
+                        </div>
+                        <div class="relative z-10">
+                          <p
+                            class="font-bold text-white peer-checked:text-primary transition-colors"
+                          >
+                            Suite Familiar
+                          </p>
+                          <p class="text-xs text-white/60">S/. 150.00</p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Número de Habitación  (Se habilita al seleccionar tipo) -->
+                <div
+                  class="space-y-3"
+                  id="roomNumberSection"
+                  style="display: none"
+                >
+                  <label
+                    class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                    >Número de Habitación</label
+                  >
+                  <div class="relative">
+                    <span
+                      class="absolute inset-y-0 left-0 flex items-center p pl-3 text-white/40 pointer-events-none"
+                    >
+                      <span class="material-symbols-outlined text-lg"
+                        >meeting_room</span
+                      >
+                    </span>
+                    <select
+                      id="numeroHabitacion"
+                      name="numeroHabitacion"
+                      class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                      disabled
+                    >
+                      <option value="">Seleccione una habitación...</option>
+                    </select>
+                  </div>
+                  <p class="text-xs text-white/40 ml-1" id="roomInfo"></p>
+                </div>
+
+                <div class="pt-6 border-t border-white/10 mt-2">
+                  <button
+                    type="submit"
+                    class="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-[1.02] flex items-center justify-center gap-2"
+                  >
+                    <span class="material-symbols-outlined">check_circle</span>
+                    Solicitar Reserva
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      // Manejar selección de tipo de habitación
+      document.querySelectorAll('input[name="tipo"]').forEach((radio) => {
+        radio.addEventListener("change", async function () {
+          const tipoSeleccionado = this.value;
+          const roomNumberSection =
+            document.getElementById("roomNumberSection");
+          const numeroHabitacionSelect =
+            document.getElementById("numeroHabitacion");
+          const roomInfo = document.getElementById("roomInfo");
+
+          // Mostrar sección de número de habitación
+          roomNumberSection.style.display = "block";
+
+          // Deshabilitar el select mientras carga
+          numeroHabitacionSelect.disabled = true;
+          numeroHabitacionSelect.innerHTML =
+            '<option value="">Cargando habitaciones...</option>';
+          roomInfo.textContent = "";
+
+          try {
+            // Hacer petición AJAX para obtener habitaciones disponibles
+            const response = await fetch(
+              `/api/habitaciones/disponibles?tipo=${tipoSeleccionado}`
+            );
+
+            if (!response.ok) {
+              throw new Error("Error al cargar habitaciones");
+            }
+
+            const habitaciones = await response.json();
+
+            // Limpiar options
+            numeroHabitacionSelect.innerHTML =
+              '<option value="">Seleccione una habitación...</option>';
+
+            if (habitaciones.length === 0) {
+              numeroHabitacionSelect.innerHTML +=
+                '<option value="">No hay habitaciones disponibles de este tipo</option>';
+              roomInfo.textContent = "No hay habitaciones disponibles";
+              roomInfo.className = "text-xs text-red-400 ml-1";
+            } else {
+              habitaciones.forEach((hab) => {
+                const option = document.createElement("option");
+                option.value = hab.numero;
+                option.textContent = `Habitación ${hab.numero} - S/. ${hab.precioPorNoche}/noche`;
+                option.dataset.precio = hab.precioPorNoche;
+                numeroHabitacionSelect.appendChild(option);
+              });
+
+              roomInfo.textContent = `${habitaciones.length} habitación(es) disponible(s)`;
+              roomInfo.className = "text-xs text-primary ml-1";
+
+              // Habilitar el select
+              numeroHabitacionSelect.disabled = false;
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            numeroHabitacionSelect.innerHTML =
+              '<option value="">Error al cargar habitaciones</option>';
+            roomInfo.textContent =
+              "Error al cargar habitaciones. Por favor intente nuevamente.";
+            roomInfo.className = "text-xs text-red-400 ml-1";
+          }
+        });
+      });
+
+      // Actualizar info al seleccionar habitación específica
+      document
+        .getElementById("numeroHabitacion")
+        .addEventListener("change", function () {
+          const selectedOption = this.options[this.selectedIndex];
+          const precio = selectedOption.dataset.precio;
+          const roomInfo = document.getElementById("roomInfo");
+
+          if (precio) {
+            roomInfo.textContent = `Precio: S/. ${precio} por noche`;
+            roomInfo.className = "text-xs text-primary ml-1";
+          }
+        });
+    </script>
+  </body>
+</html>

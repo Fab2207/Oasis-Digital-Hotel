@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html
+  class="dark"
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="fragments/common :: head"></head>
+  <body class="bg-[#121212] font-display text-gray-100 overflow-hidden">
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+          <div class="max-w-7xl mx-auto">
+            <!-- Header Content -->
+            <div
+              class="flex justify-between items-center mb-10 animate-fade-in-down"
+            >
+              <div>
+                <h1 class="text-3xl font-bold text-white tracking-tight">
+                  Gestión de Reseñas
+                </h1>
+                <p class="text-white/60 text-base font-medium mt-1">
+                  Modera y responde a las opiniones de los huéspedes.
+                </p>
+              </div>
+            </div>
+
+            <!-- Messages -->
+            <div
+              th:if="${successMessage}"
+              class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 flex items-center gap-3 animate-fade-in-down"
+            >
+              <span class="material-symbols-outlined">check_circle</span>
+              <span th:text="${successMessage}"></span>
+            </div>
+            <div
+              th:if="${errorMessage}"
+              class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3 animate-fade-in-down"
+            >
+              <span class="material-symbols-outlined">error</span>
+              <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Reviews Grid -->
+            <div class="grid grid-cols-1 gap-6">
+              <div
+                th:each="resena : ${resenas}"
+                class="glass-panel rounded-2xl p-6 transition-all hover:border-primary/30"
+              >
+                <div class="flex justify-between items-start mb-4">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg"
+                    >
+                      <span
+                        th:text="${#strings.substring(resena.cliente.nombres,0,1)}"
+                        >C</span
+                      >
+                    </div>
+                    <div>
+                      <h3
+                        class="font-bold text-white text-lg"
+                        th:text="${resena.cliente.nombres + ' ' + resena.cliente.apellidos}"
+                      >
+                        Cliente
+                      </h3>
+                      <div
+                        class="flex items-center gap-2 text-sm text-gray-400"
+                      >
+                        <span
+                          >Habitación
+                          <span th:text="${resena.reserva.habitacion.numero}"
+                            >101</span
+                          ></span
+                        >
+                        <span>•</span>
+                        <span
+                          th:text="${#temporals.format(resena.fechaCreacion, 'dd/MM/yyyy')}"
+                          >Fecha</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex flex-col items-end gap-2">
+                    <div class="flex text-yellow-400">
+                      <span
+                        class="material-symbols-outlined text-[20px]"
+                        th:each="i : ${#numbers.sequence(1, 5)}"
+                        th:text="${i <= resena.calificacion ? 'star' : 'star_border'}"
+                        >star</span
+                      >
+                    </div>
+                    <span
+                      th:if="${resena.aprobada}"
+                      class="px-3 py-1 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20 flex items-center gap-1"
+                    >
+                      <span class="material-symbols-outlined text-[14px]"
+                        >verified</span
+                      >
+                      Publicada
+                    </span>
+                    <span
+                      th:unless="${resena.aprobada}"
+                      class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 flex items-center gap-1"
+                    >
+                      <span class="material-symbols-outlined text-[14px]"
+                        >hourglass_empty</span
+                      >
+                      Pendiente
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-[#020617]/50 rounded-xl p-4 mb-4 border border-gray-700/50"
+                >
+                  <p class="text-gray-300 italic">
+                    "<span th:text="${resena.comentario}">Comentario...</span>"
+                  </p>
+                </div>
+
+                <!-- Admin Reply Display -->
+                <div
+                  th:if="${resena.respuesta}"
+                  class="ml-8 mb-4 pl-4 border-l-2 border-primary"
+                >
+                  <p class="text-xs text-primary font-bold mb-1">
+                    Respuesta del Hotel:
+                  </p>
+                  <p
+                    class="text-sm text-gray-400"
+                    th:text="${resena.respuesta}"
+                  >
+                    Respuesta...
+                  </p>
+                </div>
+
+                <!-- Actions (Admin Only) -->
+                <div
+                  sec:authorize="hasRole('ROLE_ADMIN')"
+                  class="flex items-center gap-3 mt-4 pt-4 border-t border-gray-700/50"
+                >
+                  <!-- Approve Button -->
+                  <form
+                    th:unless="${resena.aprobada}"
+                    th:action="@{/resenas/{id}/aprobar(id=${resena.id})}"
+                    method="post"
+                  >
+                    <button
+                      type="submit"
+                      class="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-bold transition-colors shadow-lg shadow-green-500/20 flex items-center gap-2"
+                    >
+                      <span class="material-symbols-outlined text-[18px]"
+                        >check</span
+                      >
+                      Aprobar
+                    </button>
+                  </form>
+
+                  <!-- Reply Button (Opens Modal/Form) -->
+                  <button
+                    onclick="toggleReplyForm(this)"
+                    class="px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-sm font-bold transition-colors border border-blue-500/20 flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >reply</span
+                    >
+                    Responder
+                  </button>
+
+                  <!-- Delete Button -->
+                  <form
+                    th:action="@{/resenas/{id}/rechazar(id=${resena.id})}"
+                    method="post"
+                    class="ml-auto"
+                  >
+                    <button
+                      type="submit"
+                      class="px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-bold transition-colors border border-red-500/20 flex items-center gap-2"
+                      onclick="return confirm('¿Eliminar esta reseña permanentemente?')"
+                    >
+                      <span class="material-symbols-outlined text-[18px]"
+                        >delete</span
+                      >
+                      Eliminar
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Reply Form (Hidden by default) -->
+                <div class="hidden mt-4 animate-fade-in" id="replyForm">
+                  <form
+                    th:action="@{/resenas/{id}/responder(id=${resena.id})}"
+                    method="post"
+                    class="flex gap-2"
+                  >
+                    <input
+                      type="text"
+                      name="respuesta"
+                      placeholder="Escribe tu respuesta oficial..."
+                      class="flex-1 px-4 py-2 bg-[#020617] border border-gray-700 rounded-lg focus:border-primary outline-none text-gray-200 text-sm"
+                    />
+                    <button
+                      type="submit"
+                      class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-bold text-sm"
+                    >
+                      Enviar
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Empty State -->
+              <div
+                th:if="${#lists.isEmpty(resenas)}"
+                class="glass-panel rounded-2xl p-12 text-center"
+              >
+                <span
+                  class="material-symbols-outlined text-6xl text-gray-600 mb-4"
+                  >rate_review</span
+                >
+                <h3 class="text-xl font-bold text-white mb-2">
+                  No hay reseñas aún
+                </h3>
+                <p class="text-gray-400">
+                  Las opiniones de los clientes aparecerán aquí.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      function toggleReplyForm(button) {
+        // Find the closest parent with class 'glass-panel' (the review card)
+        const card = button.closest(".glass-panel");
+        // Find the reply form within that card
+        const form = card.querySelector("#replyForm");
+        // Toggle visibility
+        form.classList.toggle("hidden");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 p-8 overflow-y-auto scroll-smooth">
+          <div class="flex flex-col gap-8 max-w-7xl mx-auto">
+            <!-- PageHeading -->
+            <header class="flex flex-wrap justify-between items-center gap-4">
+              <div class="flex flex-col gap-1">
+                <h1 class="text-white text-3xl font-bold tracking-tight">
+                  Gestión de Servicios
+                </h1>
+                <p class="text-white/60 text-base font-medium">
+                  Administra los servicios adicionales ofrecidos por el hotel.
+                </p>
+              </div>
+
+              <!-- Solo ADMIN puede añadir servicios -->
+              <a
+                th:if="${isAdmin}"
+                th:href="@{/servicios/nuevo}"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105"
+              >
+                <span class="material-symbols-outlined">add</span>
+                <span class="truncate">Añadir Nuevo Servicio</span>
+              </a>
+              <!-- RECEPCIONISTA ve solo un badge informativo -->
+              <div
+                th:unless="${isAdmin}"
+                class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm backdrop-blur-sm"
+              >
+                <span class="material-symbols-outlined text-lg">info</span>
+                <span>Solo administradores pueden modificar servicios</span>
+              </div>
+            </header>
+
+            <!-- Table -->
+            <div
+              class="glass-panel rounded-2xl overflow-hidden border border-white/10 shadow-xl"
+            >
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead
+                    class="bg-white/5 text-xs uppercase text-white/40 font-medium tracking-wider"
+                  >
+                    <tr>
+                      <th class="px-6 py-4">Servicio</th>
+                      <th class="px-6 py-4">Descripción</th>
+                      <th class="px-6 py-4 text-right">Precio</th>
+                      <th class="px-6 py-4 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    <tr
+                      th:each="servicio : ${servicios}"
+                      class="hover:bg-white/5 transition-colors group"
+                    >
+                      <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                          <div
+                            class="size-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-primary transition-colors"
+                          >
+                            <span class="material-symbols-outlined">spa</span>
+                          </div>
+                          <span
+                            class="font-bold text-white text-base"
+                            th:text="${servicio.nombre}"
+                            >Masaje Relajante</span
+                          >
+                        </div>
+                      </td>
+                      <td
+                        class="px-6 py-4 text-white/60"
+                        th:text="${servicio.descripcion}"
+                      >
+                        Sesión de spa de 60 minutos con aceites esenciales.
+                      </td>
+                      <td
+                        class="px-6 py-4 text-right font-mono font-bold text-white"
+                        th:text="'S/. ' + ${servicio.precio}"
+                      >
+                        S/. 120.00
+                      </td>
+                      <td class="px-6 py-4 text-center">
+                        <!-- Solo ADMIN puede editar/eliminar -->
+                        <div
+                          th:if="${isAdmin}"
+                          class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <a
+                            th:href="@{/servicios/editar/{id}(id=${servicio.id})}"
+                            class="p-2 rounded-lg text-accent hover:bg-accent/10 transition-colors"
+                            title="Editar"
+                          >
+                            <span class="material-symbols-outlined text-xl"
+                              >edit</span
+                            >
+                          </a>
+                          <button
+                            onclick="confirmarEliminacion(this)"
+                            th:data-id="${servicio.id}"
+                            class="p-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Eliminar"
+                          >
+                            <span class="material-symbols-outlined text-xl"
+                              >delete</span
+                            >
+                          </button>
+                        </div>
+                        <!-- RECEPCIONISTA ve solo un guión -->
+                        <div
+                          th:unless="${isAdmin}"
+                          class="flex items-center justify-center"
+                        >
+                          <span class="text-white/20">—</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(servicios)}">
+                      <td
+                        colspan="4"
+                        class="px-6 py-12 text-center text-white/30 flex flex-col items-center gap-2"
+                      >
+                        <span
+                          class="material-symbols-outlined text-4xl opacity-50"
+                          >inventory_2</span
+                        >
+                        <p class="font-medium">No hay servicios registrados</p>
+                        <p class="text-xs opacity-60">
+                          Ejecuta el archivo insertar_servicios.sql para agregar
+                          los servicios predeterminados
+                        </p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      function confirmarEliminacion(button) {
+        const servicioId = button.getAttribute("data-id");
+        if (
+          confirm(
+            "¿Estás seguro de que deseas eliminar este servicio? Esta acción no se puede deshacer."
+          )
+        ) {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = `/servicios/eliminar/${servicioId}`;
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+    </script>
+  </body>
+</html>

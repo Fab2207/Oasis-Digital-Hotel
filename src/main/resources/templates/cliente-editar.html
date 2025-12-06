@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+          <div class="w-full max-w-3xl mx-auto flex flex-col gap-8">
+            <!-- Messages -->
+            <div
+              th:if="${errorMessage}"
+              class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3 backdrop-blur-sm"
+            >
+              <span class="material-symbols-outlined">error</span>
+              <span th:text="${errorMessage}"></span>
+            </div>
+
+            <div class="flex flex-col items-center text-center gap-2">
+              <h1 class="text-white text-4xl font-black tracking-tight">
+                Editar Mis Datos
+              </h1>
+              <p class="text-white/60 text-lg font-medium">
+                Actualiza tu información personal de contacto.
+              </p>
+            </div>
+
+            <div
+              class="glass-panel rounded-2xl p-8 border border-white/10 shadow-xl relative overflow-hidden"
+            >
+              <!-- Decorative background -->
+              <div
+                class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"
+              ></div>
+
+              <form
+                th:action="@{/cliente/actualizar}"
+                th:object="${cliente}"
+                method="post"
+                class="flex flex-col gap-8 relative z-10"
+              >
+                <input type="hidden" th:field="*{id}" />
+
+                <!-- Información Personal -->
+                <div>
+                  <h3
+                    class="text-xl font-bold text-white mb-6 flex items-center gap-2"
+                  >
+                    <span class="p-2 rounded-lg bg-primary/10 text-primary">
+                      <span class="material-symbols-outlined">person</span>
+                    </span>
+                    Información Personal
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Nombres</label
+                      >
+                      <input
+                        type="text"
+                        th:field="*{nombres}"
+                        class="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        required
+                      />
+                    </div>
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Apellidos</label
+                      >
+                      <input
+                        type="text"
+                        th:field="*{apellidos}"
+                        class="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Datos de Identificación (Solo Lectura) -->
+                <div
+                  class="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-3 backdrop-blur-sm"
+                >
+                  <span class="material-symbols-outlined text-blue-400 mt-0.5"
+                    >info</span
+                  >
+                  <p class="text-blue-200 text-sm leading-relaxed">
+                    Por seguridad, el DNI y el nombre de usuario no pueden ser
+                    modificados. Contacte al administrador si necesita
+                    cambiarlos.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >DNI / Documento</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/30 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >badge</span
+                        >
+                      </span>
+                      <input
+                        type="text"
+                        th:field="*{dni}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 cursor-not-allowed focus:outline-none"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Nombre de Usuario</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/30 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >account_circle</span
+                        >
+                      </span>
+                      <input
+                        type="text"
+                        th:field="*{username}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 cursor-not-allowed focus:outline-none"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Información de Contacto -->
+                <div class="border-t border-white/10 pt-8">
+                  <h3
+                    class="text-xl font-bold text-white mb-6 flex items-center gap-2"
+                  >
+                    <span class="p-2 rounded-lg bg-accent/10 text-accent">
+                      <span class="material-symbols-outlined"
+                        >contact_mail</span
+                      >
+                    </span>
+                    Contacto
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Correo Electrónico</label
+                      >
+                      <div class="relative">
+                        <span
+                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                        >
+                          <span class="material-symbols-outlined text-lg"
+                            >mail</span
+                          >
+                        </span>
+                        <input
+                          type="email"
+                          th:field="*{email}"
+                          class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Teléfono</label
+                      >
+                      <div class="relative">
+                        <span
+                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                        >
+                          <span class="material-symbols-outlined text-lg"
+                            >phone</span
+                          >
+                        </span>
+                        <input
+                          type="tel"
+                          th:field="*{telefono}"
+                          class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                          required
+                          pattern="\d{9}"
+                          maxlength="9"
+                          title="Debe contener 9 dígitos"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div
+                  class="flex justify-end gap-4 mt-4 pt-6 border-t border-white/10"
+                >
+                  <a
+                    th:href="@{/cliente/area}"
+                    class="px-6 py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium"
+                  >
+                    Cancelar
+                  </a>
+                  <button
+                    type="submit"
+                    class="px-8 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105 flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined">save</span>
+                    Guardar Cambios
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+          <div class="max-w-4xl mx-auto flex flex-col gap-8">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center gap-2 text-sm text-white/60">
+              <a
+                th:href="@{/empleados/lista}"
+                class="hover:text-primary transition-colors"
+                >Empleados</a
+              >
+              <span class="material-symbols-outlined text-xs"
+                >chevron_right</span
+              >
+              <span class="text-white font-medium">Editar Empleado</span>
+            </div>
+
+            <!-- PageHeading -->
+            <div class="flex flex-col gap-2">
+              <h1 class="text-white text-4xl font-black tracking-tight">
+                Editar Información de Empleado
+              </h1>
+              <p class="text-white/60 text-lg font-medium">
+                Actualiza los detalles del perfil
+              </p>
+            </div>
+
+            <!-- Form Container -->
+            <div
+              class="glass-panel rounded-2xl p-8 border border-white/10 shadow-xl relative overflow-hidden"
+            >
+              <!-- Decorative background -->
+              <div
+                class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"
+              ></div>
+
+              <form
+                th:action="@{/empleados/actualizar}"
+                th:object="${empleado}"
+                method="post"
+                class="flex flex-col gap-8 relative z-10"
+              >
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{usuario.id}" />
+
+                <!-- Personal Information -->
+                <div>
+                  <h3
+                    class="text-xl font-bold text-white mb-6 flex items-center gap-2"
+                  >
+                    <span class="p-1.5 rounded-lg bg-primary/10 text-primary">
+                      <span class="material-symbols-outlined">person</span>
+                    </span>
+                    Información Personal
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Nombre</label
+                      >
+                      <input
+                        th:field="*{nombres}"
+                        class="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                      />
+                    </div>
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Apellido</label
+                      >
+                      <input
+                        th:field="*{apellidos}"
+                        class="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border-t border-white/10"></div>
+
+                <!-- Contact Information -->
+                <div>
+                  <h3
+                    class="text-xl font-bold text-white mb-6 flex items-center gap-2"
+                  >
+                    <span class="p-1.5 rounded-lg bg-primary/10 text-primary">
+                      <span class="material-symbols-outlined"
+                        >contact_mail</span
+                      >
+                    </span>
+                    Información de Contacto
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Correo Electrónico</label
+                      >
+                      <div class="relative">
+                        <span
+                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                        >
+                          <span class="material-symbols-outlined text-lg"
+                            >mail</span
+                          >
+                        </span>
+                        <input
+                          th:field="*{email}"
+                          class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                          type="email"
+                        />
+                      </div>
+                    </div>
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Número de Teléfono</label
+                      >
+                      <div class="relative">
+                        <span
+                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                        >
+                          <span class="material-symbols-outlined text-lg"
+                            >phone</span
+                          >
+                        </span>
+                        <input
+                          th:field="*{telefono}"
+                          class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                          type="tel"
+                          pattern="\d{9}"
+                          maxlength="9"
+                          title="Debe contener 9 dígitos"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border-t border-white/10"></div>
+
+                <!-- Credentials -->
+                <div>
+                  <h3
+                    class="text-xl font-bold text-white mb-6 flex items-center gap-2"
+                  >
+                    <span class="p-1.5 rounded-lg bg-primary/10 text-primary">
+                      <span class="material-symbols-outlined">badge</span>
+                    </span>
+                    Credenciales y Rol
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Rol</label
+                      >
+                      <input
+                        value="Recepcionista"
+                        readonly
+                        disabled
+                        class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white/50 cursor-not-allowed"
+                      />
+                    </div>
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                        >Contraseña</label
+                      >
+                      <input
+                        value="********"
+                        readonly
+                        disabled
+                        type="password"
+                        class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white/50 cursor-not-allowed"
+                      />
+                      <p
+                        class="text-xs text-white/40 mt-1 ml-1 flex items-center gap-1"
+                      >
+                        <span class="material-symbols-outlined text-sm"
+                          >info</span
+                        >
+                        La contraseña no se puede editar desde aquí.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div
+                  class="flex items-center justify-end gap-4 pt-6 border-t border-white/10"
+                >
+                  <a
+                    th:href="@{/empleados}"
+                    class="px-6 py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium"
+                    >Cancelar</a
+                  >
+                  <button
+                    type="submit"
+                    class="px-8 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105 flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined">save</span>
+                    Guardar Cambios
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

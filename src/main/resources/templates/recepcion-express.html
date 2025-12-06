@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-6 scroll-smooth">
+          <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6 h-full">
+            <!-- Left Column: Search and List -->
+            <div class="col-span-12 lg:col-span-5 flex flex-col gap-6 h-full">
+              <div class="flex flex-col gap-2">
+                <h1 class="text-white text-3xl font-black tracking-tight">
+                  Recepción Express
+                </h1>
+                <p class="text-white/60 text-base font-medium">
+                  Procesa check-ins y check-outs de forma rápida.
+                </p>
+              </div>
+
+              <!-- Search -->
+              <div
+                class="glass-panel rounded-2xl p-2 border border-white/10 shadow-xl"
+              >
+                <div class="relative group">
+                  <span
+                    class="absolute inset-y-0 left-0 flex items-center pl-4 text-white/40 group-focus-within:text-primary transition-colors"
+                  >
+                    <span class="material-symbols-outlined">search</span>
+                  </span>
+                  <input
+                    class="w-full bg-transparent border-none py-3 pl-12 pr-4 text-white placeholder-white/20 focus:ring-0 text-lg"
+                    placeholder="Buscar por nombre, DNI, reserva..."
+                    value=""
+                  />
+                </div>
+              </div>
+
+              <!-- Filter Tabs -->
+              <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <button
+                  class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 whitespace-nowrap transition-transform hover:scale-105"
+                >
+                  <span class="material-symbols-outlined text-lg">login</span>
+                  Llegadas de Hoy
+                </button>
+                <button
+                  class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-sm font-medium hover:bg-white/10 hover:text-white transition-colors whitespace-nowrap"
+                >
+                  <span class="material-symbols-outlined text-lg">logout</span>
+                  Salidas de Hoy
+                </button>
+                <button
+                  class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-sm font-medium hover:bg-white/10 hover:text-white transition-colors whitespace-nowrap"
+                >
+                  <span class="material-symbols-outlined text-lg">list</span>
+                  Todas
+                </button>
+              </div>
+
+              <!-- List Items -->
+              <div
+                class="flex flex-col gap-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+              >
+                <div
+                  th:each="reserva, stat : ${reservas}"
+                  class="glass-panel p-4 rounded-xl border border-white/5 cursor-pointer transition-all duration-200 hover:bg-white/5 group relative overflow-hidden"
+                  th:classappend="${stat.first} ? 'ring-2 ring-primary/50 bg-primary/5' : ''"
+                >
+                  <div
+                    class="absolute left-0 top-0 bottom-0 w-1 bg-primary opacity-0 transition-opacity"
+                    th:classappend="${stat.first} ? 'opacity-100' : 'group-hover:opacity-50'"
+                  ></div>
+
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                      <div
+                        class="size-12 rounded-full bg-white/10 flex items-center justify-center text-white/60 font-bold border-2 border-white/5 group-hover:border-primary/30 transition-colors"
+                      >
+                        <span
+                          th:text="${#strings.substring(reserva.cliente.nombres, 0, 1) + #strings.substring(reserva.cliente.apellidos, 0, 1)}"
+                          >AM</span
+                        >
+                      </div>
+                      <div class="flex flex-col">
+                        <p
+                          class="text-white text-base font-bold leading-tight group-hover:text-primary transition-colors"
+                          th:text="${reserva.cliente.nombres + ' ' + reserva.cliente.apellidos}"
+                        >
+                          Alejandro Martinez
+                        </p>
+                        <div
+                          class="flex items-center gap-1 text-white/40 text-xs font-medium mt-1"
+                        >
+                          <span class="material-symbols-outlined text-[14px]"
+                            >calendar_month</span
+                          >
+                          <span
+                            th:text="${#temporals.format(reserva.fechaEntrada, 'dd MMM')} + ' - ' + ${#temporals.format(reserva.fechaSalida, 'dd MMM')}"
+                            >14 Dic - 18 Dic</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    <div class="shrink-0">
+                      <span
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border"
+                        th:classappend="${reserva.estado == 'PENDIENTE'} ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                        (${reserva.estado == 'ACTIVA'} ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                        'bg-red-500/10 text-red-400 border-red-500/20')"
+                      >
+                        <span
+                          class="size-1.5 rounded-full"
+                          th:classappend="${reserva.estado == 'PENDIENTE'} ? 'bg-yellow-400' : (${reserva.estado == 'ACTIVA'} ? 'bg-green-400' : 'bg-red-400')"
+                        ></span>
+                        <span th:text="${reserva.estado}">Pendiente</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Details and Actions -->
+            <div
+              class="col-span-12 lg:col-span-7 flex flex-col gap-6 glass-panel rounded-2xl p-8 border border-white/10 shadow-xl relative overflow-hidden"
+              th:if="${reservaSeleccionada != null}"
+            >
+              <!-- Decorative background -->
+              <div
+                class="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"
+              ></div>
+
+              <!-- Guest Summary -->
+              <div class="border-b border-white/10 pb-6 relative z-10">
+                <h3
+                  class="text-xs font-bold text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-base"
+                    >person</span
+                  >
+                  Resumen del Huésped
+                </h3>
+                <div class="flex items-center gap-6">
+                  <div
+                    class="size-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-white font-bold text-2xl border border-white/10 shadow-lg"
+                  >
+                    <span
+                      th:text="${#strings.substring(reservaSeleccionada.cliente.nombres, 0, 1) + #strings.substring(reservaSeleccionada.cliente.apellidos, 0, 1)}"
+                      >AM</span
+                    >
+                  </div>
+                  <div>
+                    <h2
+                      class="text-3xl font-bold text-white tracking-tight"
+                      th:text="${reservaSeleccionada.cliente.nombres + ' ' + reservaSeleccionada.cliente.apellidos}"
+                    >
+                      Alejandro Martinez
+                    </h2>
+                    <div class="flex items-center gap-3 mt-2">
+                      <span
+                        class="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white/60 text-xs font-mono"
+                      >
+                        DNI:
+                        <span
+                          class="text-white font-bold"
+                          th:text="${reservaSeleccionada.cliente.dni}"
+                          >12345678</span
+                        >
+                      </span>
+                      <span
+                        class="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white/60 text-xs flex items-center gap-1"
+                      >
+                        <span class="material-symbols-outlined text-[14px]"
+                          >confirmation_number</span
+                        >
+                        Reserva #<span
+                          class="text-white font-bold"
+                          th:text="${reservaSeleccionada.id}"
+                          >8123</span
+                        >
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stay Details -->
+              <div class="border-b border-white/10 pb-6 relative z-10">
+                <h3
+                  class="text-xs font-bold text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-base">hotel</span>
+                  Detalles de la Estancia
+                </h3>
+                <div class="grid grid-cols-2 gap-6">
+                  <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <p class="text-xs text-white/40 font-bold uppercase mb-1">
+                      Check-in
+                    </p>
+                    <p
+                      class="text-white text-lg font-bold flex items-center gap-2"
+                    >
+                      <span class="material-symbols-outlined text-primary"
+                        >login</span
+                      >
+                      <span
+                        th:text="${#temporals.format(reservaSeleccionada.fechaEntrada, 'dd MMM, yyyy')}"
+                        >14 Dic, 2023</span
+                      >
+                    </p>
+                  </div>
+                  <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <p class="text-xs text-white/40 font-bold uppercase mb-1">
+                      Check-out
+                    </p>
+                    <p
+                      class="text-white text-lg font-bold flex items-center gap-2"
+                    >
+                      <span class="material-symbols-outlined text-red-400"
+                        >logout</span
+                      >
+                      <span
+                        th:text="${#temporals.format(reservaSeleccionada.fechaSalida, 'dd MMM, yyyy')}"
+                        >18 Dic, 2023</span
+                      >
+                    </p>
+                  </div>
+                  <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <p class="text-xs text-white/40 font-bold uppercase mb-1">
+                      Habitación
+                    </p>
+                    <p class="text-white font-medium flex items-center gap-2">
+                      <span class="material-symbols-outlined text-accent"
+                        >bed</span
+                      >
+                      <span th:text="${reservaSeleccionada.habitacion.tipo}"
+                        >Suite Deluxe</span
+                      >
+                    </p>
+                  </div>
+                  <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <p class="text-xs text-white/40 font-bold uppercase mb-1">
+                      Huéspedes
+                    </p>
+                    <p class="text-white font-medium flex items-center gap-2">
+                      <span class="material-symbols-outlined text-white/60"
+                        >group</span
+                      >
+                      <span
+                        th:text="${reservaSeleccionada.numeroHuespedes + ' Personas'}"
+                        >2 Personas</span
+                      >
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions Card -->
+              <div class="mt-auto relative z-10">
+                <div class="flex items-center justify-between mb-4">
+                  <h3
+                    class="text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-base"
+                      >bolt</span
+                    >
+                    Acciones Rápidas
+                  </h3>
+                  <span class="text-xs text-white/40 italic"
+                    >Verifique identidad antes de proceder</span
+                  >
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <form
+                    th:action="@{/recepcion/checkin/{id}(id=${reservaSeleccionada.id})}"
+                    method="post"
+                    class="w-full"
+                  >
+                    <button
+                      type="submit"
+                      class="w-full h-14 rounded-xl bg-primary text-white font-bold text-lg shadow-lg shadow-primary/20 hover:bg-primary/90 hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      <span class="material-symbols-outlined"
+                        >check_circle</span
+                      >
+                      Confirmar Check-in
+                    </button>
+                  </form>
+                  <a
+                    th:href="@{/reservas/ver/{id}(id=${reservaSeleccionada.id})}"
+                    class="w-full h-14 rounded-xl border border-white/10 bg-white/5 text-white font-bold text-lg hover:bg-white/10 hover:border-white/20 transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <span class="material-symbols-outlined">visibility</span>
+                    Ver Detalles
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State for Selection -->
+            <div
+              class="col-span-12 lg:col-span-7 flex flex-col items-center justify-center gap-6 glass-panel rounded-2xl p-8 border border-white/10 shadow-xl text-center h-full min-h-[500px]"
+              th:if="${reservaSeleccionada == null}"
+            >
+              <div
+                class="size-32 rounded-full bg-white/5 flex items-center justify-center mb-4"
+              >
+                <span class="material-symbols-outlined text-6xl text-white/20"
+                  >touch_app</span
+                >
+              </div>
+              <h2 class="text-2xl font-bold text-white">
+                Seleccione una Reserva
+              </h2>
+              <p class="text-white/60 max-w-md">
+                Haga clic en una reserva de la lista de la izquierda para ver
+                los detalles y realizar acciones de check-in/out.
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

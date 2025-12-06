@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 p-8 overflow-y-auto scroll-smooth">
+          <div class="flex flex-col gap-8 max-w-7xl mx-auto">
+            <!-- PageHeading -->
+            <header class="flex flex-wrap justify-between items-center gap-4">
+              <div class="flex flex-col gap-1">
+                <h1 class="text-white text-3xl font-bold tracking-tight">
+                  Gestión de Usuarios
+                </h1>
+                <p class="text-white/60 text-base font-medium">
+                  Administre las cuentas, roles y permisos de acceso al sistema.
+                </p>
+              </div>
+            </header>
+
+            <!-- ToolBar -->
+            <div
+              class="glass-panel rounded-2xl p-2 flex flex-wrap items-center justify-between gap-4 border border-white/10 shadow-xl"
+            >
+              <div class="flex gap-4 flex-1 min-w-[300px]">
+                <div class="relative flex-1 max-w-md group">
+                  <span
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 group-focus-within:text-primary transition-colors"
+                  >
+                    <span class="material-symbols-outlined">search</span>
+                  </span>
+                  <input
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/5 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                    placeholder="Buscar por nombre o correo electrónico..."
+                  />
+                </div>
+                <div class="flex gap-2">
+                  <select
+                    class="rounded-xl bg-white/5 border border-white/5 text-white/80 focus:ring-2 focus:ring-primary/50 focus:bg-black/40 transition-all duration-300 py-2.5 pl-3 pr-8 text-sm [&>option]:bg-[#121212]"
+                  >
+                    <option>Filtrar por Rol</option>
+                    <option>Administrador</option>
+                    <option>Recepcionista</option>
+                    <option>Gerente</option>
+                  </select>
+                  <select
+                    class="rounded-xl bg-white/5 border border-white/5 text-white/80 focus:ring-2 focus:ring-primary/50 focus:bg-black/40 transition-all duration-300 py-2.5 pl-3 pr-8 text-sm [&>option]:bg-[#121212]"
+                  >
+                    <option>Filtrar por Estado</option>
+                    <option>Activo</option>
+                    <option>Inactivo</option>
+                  </select>
+                </div>
+              </div>
+              <a
+                th:href="@{/usuarios/nuevo}"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105"
+              >
+                <span class="material-symbols-outlined text-xl">add</span>
+                <span class="truncate">Crear Usuario</span>
+              </a>
+            </div>
+
+            <!-- Users Table -->
+            <div
+              class="glass-panel rounded-2xl overflow-hidden border border-white/10 shadow-xl"
+            >
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead
+                    class="bg-white/5 text-xs uppercase text-white/40 font-medium tracking-wider"
+                  >
+                    <tr>
+                      <th class="px-6 py-4">Nombre Completo</th>
+                      <th class="px-6 py-4">Correo Electrónico</th>
+                      <th class="px-6 py-4">Rol</th>
+                      <th class="px-6 py-4">Estado</th>
+                      <th class="px-6 py-4 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    <tr
+                      th:each="usuario : ${usuarios}"
+                      class="hover:bg-white/5 transition-colors group"
+                    >
+                      <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                          <div
+                            class="size-9 rounded-full bg-white/10 flex items-center justify-center text-white/60 font-bold"
+                          >
+                            <span
+                              th:text="${#strings.substring(usuario.username, 0, 1).toUpperCase()}"
+                              >U</span
+                            >
+                          </div>
+                          <span
+                            class="font-bold text-white"
+                            th:text="${usuario.empleado != null ? usuario.empleado.nombres + ' ' + usuario.empleado.apellidos : (usuario.cliente != null ? usuario.cliente.nombres + ' ' + usuario.cliente.apellidos : usuario.username)}"
+                          >
+                            Juan Pérez
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        class="px-6 py-4 text-white/60"
+                        th:text="${usuario.empleado != null ? usuario.empleado.email : (usuario.cliente != null ? usuario.cliente.email : 'N/A')}"
+                      >
+                        juan.perez@email.com
+                      </td>
+                      <td class="px-6 py-4">
+                        <span
+                          class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white/80 text-xs font-medium"
+                          th:text="${usuario.rol}"
+                        >
+                          Recepcionista
+                        </span>
+                      </td>
+                      <td class="px-6 py-4">
+                        <span
+                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border"
+                          th:classappend="${usuario.activo} ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'"
+                        >
+                          <span
+                            class="size-1.5 rounded-full"
+                            th:classappend="${usuario.activo} ? 'bg-green-400' : 'bg-red-400'"
+                          ></span>
+                          <span
+                            th:text="${usuario.activo ? 'Activo' : 'Inactivo'}"
+                            >Activo</span
+                          >
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 text-right">
+                        <div
+                          class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <a
+                            th:href="@{/usuarios/editar/{id}(id=${usuario.id})}"
+                            class="p-2 rounded-lg text-accent hover:bg-accent/10 transition-colors"
+                            title="Editar"
+                          >
+                            <span class="material-symbols-outlined text-xl"
+                              >edit</span
+                            >
+                          </a>
+                          <button
+                            onclick="confirmarEliminacion(this)"
+                            th:data-id="${usuario.id}"
+                            class="p-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Eliminar"
+                          >
+                            <span class="material-symbols-outlined text-xl"
+                              >delete</span
+                            >
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(usuarios)}">
+                      <td
+                        colspan="5"
+                        class="px-6 py-12 text-center text-white/30 flex flex-col items-center gap-2"
+                      >
+                        <span
+                          class="material-symbols-outlined text-4xl opacity-50"
+                          >group_off</span
+                        >
+                        No hay usuarios registrados
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <div
+                class="p-4 border-t border-white/5 flex items-center justify-between bg-white/5"
+              >
+                <span class="text-xs text-white/40">
+                  Mostrando <span class="text-white font-bold">1-4</span> de
+                  <span class="text-white font-bold">100</span>
+                </span>
+                <div class="flex gap-1">
+                  <button
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    class="px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-white shadow-lg shadow-primary/20"
+                  >
+                    1
+                  </button>
+                  <button
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    2
+                  </button>
+                  <button
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    3
+                  </button>
+                  <button
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      function confirmarEliminacion(button) {
+        const usuarioId = button.getAttribute("data-id");
+        if (
+          confirm(
+            "¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer."
+          )
+        ) {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = `/usuarios/eliminar/${usuarioId}`;
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+          <div class="max-w-4xl mx-auto flex flex-col gap-8">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center gap-2 text-sm text-white/60">
+              <a
+                th:href="@{/empleados/lista}"
+                class="hover:text-primary transition-colors"
+                >Empleados</a
+              >
+              <span class="material-symbols-outlined text-xs"
+                >chevron_right</span
+              >
+              <span
+                class="text-white font-medium"
+                th:text="${empleado.id != null ? 'Editar Empleado' : 'Registrar Empleado'}"
+                >Registrar Empleado</span
+              >
+            </div>
+
+            <!-- PageHeading -->
+            <div class="flex flex-col gap-2">
+              <h1
+                class="text-white text-4xl font-black tracking-tight"
+                th:text="${empleado.id != null ? 'Editar Empleado' : 'Registrar Nuevo Empleado'}"
+              >
+                Registrar Nuevo Empleado
+              </h1>
+              <p class="text-white/60 text-lg font-medium">
+                Ingrese la información del personal.
+              </p>
+            </div>
+
+            <!-- Form Container -->
+            <div
+              class="glass-panel rounded-2xl p-8 border border-white/10 shadow-xl relative overflow-hidden"
+            >
+              <!-- Decorative background -->
+              <div
+                class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"
+              ></div>
+
+              <form
+                th:action="${empleado.id != null} ? @{/empleados/actualizar/{id}(id=${empleado.id})} : @{/empleados/guardar}"
+                th:object="${empleado}"
+                method="post"
+                class="flex flex-col gap-8 relative z-10"
+              >
+                <!-- Personal Information Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Nombre</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >person</span
+                        >
+                      </span>
+                      <input
+                        th:field="*{nombres}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="Ingrese el nombre"
+                        type="text"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Apellido</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >person</span
+                        >
+                      </span>
+                      <input
+                        th:field="*{apellidos}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="Ingrese el apellido"
+                        type="text"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Número de Teléfono</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >phone</span
+                        >
+                      </span>
+                      <input
+                        th:field="*{telefono}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="999999999"
+                        pattern="\d{9}"
+                        maxlength="9"
+                        title="Debe contener 9 dígitos"
+                        type="tel"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Rol</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >badge</span
+                        >
+                      </span>
+                      <select
+                        disabled
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white/50 cursor-not-allowed appearance-none"
+                      >
+                        <option value="RECEPCIONISTA" selected>
+                          Recepcionista
+                        </option>
+                      </select>
+                      <input
+                        type="hidden"
+                        name="usuario.rol"
+                        value="RECEPCIONISTA"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Credentials Section -->
+                <div class="space-y-1.5">
+                  <label
+                    class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                    >Correo Electrónico</label
+                  >
+                  <div class="relative">
+                    <span
+                      class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                    >
+                      <span class="material-symbols-outlined text-lg"
+                        >mail</span
+                      >
+                    </span>
+                    <input
+                      th:field="*{email}"
+                      class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                      placeholder="ejemplo@oasisdigital.com"
+                      type="email"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Contraseña</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >lock</span
+                        >
+                      </span>
+                      <input
+                        th:field="*{usuario.password}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="Ingrese una contraseña segura"
+                        type="password"
+                        th:readonly="${empleado.id != null}"
+                        th:classappend="${empleado.id != null} ? 'opacity-50 cursor-not-allowed' : ''"
+                        th:required="${empleado.id == null}"
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Confirmar Contraseña</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >lock_reset</span
+                        >
+                      </span>
+                      <input
+                        name="confirmPassword"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="Confirme la contraseña"
+                        type="password"
+                        th:readonly="${empleado.id != null}"
+                        th:classappend="${empleado.id != null} ? 'opacity-50 cursor-not-allowed' : ''"
+                        th:required="${empleado.id == null}"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Actions Section -->
+                <div
+                  class="flex items-center justify-end gap-4 pt-6 border-t border-white/10"
+                >
+                  <a
+                    th:href="@{/empleados/lista}"
+                    class="px-6 py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium"
+                    >Cancelar</a
+                  >
+                  <button
+                    class="px-8 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105 flex items-center gap-2"
+                    type="submit"
+                  >
+                    <span class="material-symbols-outlined">save</span>
+                    <span
+                      th:text="${empleado.id != null ? 'Actualizar Empleado' : 'Registrar Empleado'}"
+                      >Registrar Empleado</span
+                    >
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script>
+      document.querySelector("form").addEventListener("submit", function (e) {
+        const visibleInputs = this.querySelectorAll(
+          "input:not([type=hidden]):not([disabled])"
+        );
+        let empty = false;
+        visibleInputs.forEach((input) => {
+          if (input.hasAttribute("required") && input.value.trim() === "") {
+            empty = true;
+          }
+        });
+
+        if (empty) {
+          e.preventDefault();
+          alert("Por favor, complete todos los campos obligatorios.");
+        }
+      });
+    </script>
+  </body>
+</html>

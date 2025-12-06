@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body class="bg-[#121212] font-display text-gray-100 overflow-hidden">
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+      
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements Removed for consistency -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+          <div class="mx-auto max-w-7xl">
+            <!-- Page Heading -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+                <div class="flex flex-col gap-1">
+                  <h1 class="text-white text-3xl font-bold tracking-tight">
+                    Gestión de Reservas
+                  </h1>
+                  <p class="text-white/60 text-base font-medium">
+                    Administra las reservas, check-ins y check-outs del hotel.
+                  </p>
+                </div>
+                <a
+                  sec:authorize="!hasRole('ROLE_ADMIN')"
+                  th:href="@{/reservas/crear}"
+                  class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105"
+                >
+                  <span class="material-symbols-outlined">add</span>
+                  Nueva Reserva
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <!-- Left Column: List & Filters (Takes 2/3 width) -->
+                <div class="flex flex-col gap-6 lg:col-span-2">
+                    <!-- Filters Bar -->
+                    <form id="filterForm" class="flex flex-col gap-4 md:flex-row" method="get" th:action="@{/reservas}">
+                        <div class="flex-1 flex gap-4">
+                            <div class="relative flex-1 group">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 group-focus-within:text-primary transition-colors">
+                                    <span class="material-symbols-outlined">search</span>
+                                </span>
+                                <input
+                                    name="search"
+                                    th:value="${search}"
+                                    class="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                                    placeholder="Buscar por Nombre, DNI o ID..."
+                                />
+                            </div>
+                        </div>
+                        
+                        <!-- Status Filter Dropdown -->
+                        <div class="relative" id="statusDropdownContainer">
+                            <button type="button" onclick="document.getElementById('statusDropdown').classList.toggle('hidden')" class="h-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white flex items-center gap-2 hover:bg-white/10 transition-colors font-medium">
+                                <span class="material-symbols-outlined">filter_list</span>
+                                <span>Estado</span>
+                            </button>
+                            <div id="statusDropdown" class="absolute right-0 top-full mt-2 w-48 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl hidden z-50 p-2 glass-panel">
+                                <label class="flex items-center gap-2 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+                                    <input type="checkbox" name="estados" value="ACTIVA" th:checked="${estadosSeleccionados != null && #lists.contains(estadosSeleccionados, 'ACTIVA')}" class="rounded border-white/30 bg-transparent text-primary focus:ring-primary">
+                                    <span class="text-white text-sm">Activa</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+                                    <input type="checkbox" name="estados" value="PENDIENTE" th:checked="${estadosSeleccionados != null && #lists.contains(estadosSeleccionados, 'PENDIENTE')}" class="rounded border-white/30 bg-transparent text-primary focus:ring-primary">
+                                    <span class="text-white text-sm">Pendiente</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+                                    <input type="checkbox" name="estados" value="FINALIZADA" th:checked="${estadosSeleccionados != null && #lists.contains(estadosSeleccionados, 'FINALIZADA')}" class="rounded border-white/30 bg-transparent text-primary focus:ring-primary">
+                                    <span class="text-white text-sm">Finalizada</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+                                    <input type="checkbox" name="estados" value="CANCELADA" th:checked="${estadosSeleccionados != null && #lists.contains(estadosSeleccionados, 'CANCELADA')}" class="rounded border-white/30 bg-transparent text-primary focus:ring-primary">
+                                    <span class="text-white text-sm">Cancelada</span>
+                                </label>
+                                <button type="submit" class="w-full mt-2 bg-primary text-white font-bold text-xs py-2 rounded-lg hover:bg-primary/90 transition-colors">Aplicar</button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="px-6 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                            Buscar
+                        </button>
+                    </form>
+
+                    <!-- Reservations Table -->
+                    <div class="glass-panel rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-white/5 text-xs uppercase text-white/40 font-medium tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">ID</th>
+                                        <th class="px-6 py-4">Huésped</th>
+                                        <th class="px-6 py-4">Habitación</th>
+                                        <th class="px-6 py-4">Fechas</th>
+                                        <th class="px-6 py-4">Estado</th>
+                                        <th class="px-6 py-4 text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5">
+                                    <tr th:each="reserva : ${reservas}" 
+                                        th:with="serviciosStr=${reserva.servicios.isEmpty() ? 'Ninguno' : #strings.listJoin(reserva.servicios.![nombre], ', ')}"
+                                        th:onclick="seleccionarReserva([[${reserva.id}]], [[${reserva.cliente.nombres} + ' ' + ${reserva.cliente.apellidos}]], [[${reserva.cliente.email}]], [[${reserva.cliente.telefono}]], [[${reserva.fechaInicio}]], [[${reserva.fechaFin}]], [[${reserva.horaEntrada}]], [[${reserva.horaSalida}]], [[${reserva.habitacion.numero} + ' - ' + ${reserva.habitacion.tipo}]], [[${reserva.diasEstadia} + ' días']], [[${reserva.totalPagar}]], [[${reserva.montoDescuento}]], [[${reserva.estadoReserva}]], [[${serviciosStr}]])"
+                                        class="hover:bg-white/5 cursor-pointer transition-colors group">
+                                        <td class="px-6 py-4 text-white font-bold group-hover:text-primary transition-colors" th:text="'#' + ${reserva.id}">#123</td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex flex-col">
+                                                <span class="text-white font-medium" th:text="${reserva.cliente.nombres} + ' ' + ${reserva.cliente.apellidos}">Juan Perez</span>
+                                                <span class="text-white/40 text-xs" th:text="${reserva.cliente.dni}">12345678</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-white/80" th:text="${reserva.habitacion.numero}">101</td>
+                                        <td class="px-6 py-4 text-white/60">
+                                            <div class="flex flex-col gap-1">
+                                                <span class="flex items-center gap-1 text-xs"><span class="material-symbols-outlined text-[10px]">login</span> <span th:text="${reserva.fechaInicio}">2023-10-01</span></span>
+                                                <span class="flex items-center gap-1 text-xs"><span class="material-symbols-outlined text-[10px]">logout</span> <span th:text="${reserva.fechaFin}">2023-10-05</span></span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2.5 py-1 rounded-full text-xs font-bold border"
+                                                  th:classappend="${reserva.estadoReserva == 'ACTIVA' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
+                                                  (reserva.estadoReserva == 'PENDIENTE' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 
+                                                  (reserva.estadoReserva == 'FINALIZADA' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'))}"
+                                                  th:text="${reserva.estadoReserva}">Activa</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right text-white font-mono font-bold" th:text="'S/ ' + ${#numbers.formatDecimal(reserva.totalPagar, 1, 2)}">S/ 200.00</td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(reservas)}">
+                                        <td colspan="6" class="px-6 py-12 text-center text-white/30 flex flex-col items-center gap-2">
+                                            <span class="material-symbols-outlined text-4xl opacity-50">event_busy</span>
+                                            No se encontraron reservas con los filtros seleccionados.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Details Panel (Takes 1/3 width) -->
+                <div class="lg:col-span-1">
+                    <div id="emptyState" class="glass-panel rounded-2xl p-8 text-center flex flex-col items-center justify-center h-64 border-dashed border-white/10">
+                        <div class="size-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                            <span class="material-symbols-outlined text-3xl text-white/20">touch_app</span>
+                        </div>
+                        <p class="text-white/40 text-sm max-w-[200px]">Selecciona una reserva de la lista para ver sus detalles y acciones.</p>
+                    </div>
+
+                    <div
+                        class="glass-panel rounded-2xl p-6 flex flex-col gap-6 sticky top-6 border border-primary/20 shadow-2xl shadow-black/50"
+                        id="detailsPanel"
+                        style="display: none"
+                    >
+                        <div class="flex justify-between items-start">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-primary uppercase tracking-wider">Detalles de Reserva</span>
+                                <h3 class="text-2xl font-bold text-white">
+                                    #<span id="detId"></span>
+                                </h3>
+                            </div>
+                            <button onclick="document.getElementById('detailsPanel').style.display='none'; document.getElementById('emptyState').style.display='flex'" class="p-1 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col gap-6">
+                            <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-white/40 mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">person</span> Huésped
+                                </h4>
+                                <div class="flex items-center gap-4">
+                                    <div class="size-12 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary/20">
+                                        <span class="material-symbols-outlined">person</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-lg font-bold text-white leading-tight" id="detNombre">Ana Torres</p>
+                                        <p class="text-sm text-white/60" id="detEmail">ana@email.com</p>
+                                        <p class="text-sm text-white/60" id="detTelefono">+34 123 456</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-white/40 mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">hotel</span> Estancia
+                                </h4>
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div class="bg-black/20 p-3 rounded-lg border border-white/5">
+                                        <p class="text-xs text-white/40 mb-1">Check-in</p>
+                                        <p class="font-bold text-white text-sm" id="detCheckin">05 Sep</p>
+                                        <p class="text-xs text-white/60 mt-1" id="detHoraEntrada">14:00</p>
+                                    </div>
+                                    <div class="bg-black/20 p-3 rounded-lg border border-white/5">
+                                        <p class="text-xs text-white/40 mb-1">Check-out</p>
+                                        <p class="font-bold text-white text-sm" id="detCheckout">16 Sep</p>
+                                        <p class="text-xs text-white/60 mt-1" id="detHoraSalida">12:00</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center px-2">
+                                    <span class="text-sm font-medium text-white/80 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-sm text-primary">key</span>
+                                        <span id="detHabitacion">201 - Suite</span>
+                                    </span>
+                                    <span class="text-sm font-medium text-white/80 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-sm text-primary">group</span>
+                                        <span id="detOcupantes">2 Pers.</span>
+                                    </span>
+                                </div>
+                                <div class="bg-black/20 p-3 rounded-lg border border-white/5 mt-3">
+                                    <p class="text-xs text-white/40 mb-1">Servicios Adicionales</p>
+                                    <p class="font-bold text-white text-sm" id="detServicios">Ninguno</p>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-white/10">
+                                <div id="detDescuentoContainer" class="flex justify-between items-center mb-2 hidden">
+                                    <span class="text-white/60 font-medium text-sm">Descuento</span>
+                                    <span class="text-lg font-bold text-green-400" id="detDescuento">- S/ 0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-6">
+                                    <span class="text-white/60 font-medium">Total a Pagar</span>
+                                    <span class="text-3xl font-bold text-primary" id="detTotal">S/ 2,150.00</span>
+                                </div>
+                                <div class="flex flex-col gap-3" id="actionButtons">
+                                    <!-- Buttons injected via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </main>
+    </div>
+
+    <script>
+        function seleccionarReserva(id, nombre, email, telefono, inicio, fin, horaEntrada, horaSalida, habitacion, ocupantes, total, montoDescuento, estado, servicios) {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('detailsPanel').style.display = 'flex';
+            
+            document.getElementById('detId').innerText = id;
+            document.getElementById('detNombre').innerText = nombre;
+            document.getElementById('detEmail').innerText = email;
+            document.getElementById('detTelefono').innerText = telefono;
+            document.getElementById('detCheckin').innerText = inicio;
+            document.getElementById('detCheckout').innerText = fin;
+            document.getElementById('detHoraEntrada').innerText = horaEntrada || '--:--';
+            document.getElementById('detHoraSalida').innerText = horaSalida || '--:--';
+            document.getElementById('detHabitacion').innerText = habitacion;
+            document.getElementById('detOcupantes').innerText = ocupantes;
+            document.getElementById('detServicios').innerText = servicios || 'Ninguno';
+            
+            if (montoDescuento && parseFloat(montoDescuento) > 0) {
+                document.getElementById('detDescuentoContainer').classList.remove('hidden');
+                document.getElementById('detDescuento').innerText = '- S/ ' + parseFloat(montoDescuento).toFixed(2);
+                // El total ya viene con descuento aplicado desde el backend si se usa calcularTotalConDescuento, 
+                // pero aquí 'total' es reserva.totalPagar que es la base. 
+                // Si queremos mostrar el total final, deberíamos pasarlo calculado o calcularlo aquí.
+                // Asumiremos que 'total' es el monto final a pagar (totalPagar en BD suele ser base, pero en la vista a veces se pasa el calculado).
+                // Revisando el th:onclick, pasamos reserva.totalPagar. 
+                // Si reserva.totalPagar es el base, entonces el total final es totalPagar + servicios - descuento.
+                // Por simplicidad visual, mostraremos el totalPagar tal cual viene, asumiendo que el usuario quiere ver ese valor.
+                // O mejor, calculamos el total final aproximado para la vista:
+                // Total Final = Total Base (total) - Descuento. (Servicios no los tenemos sumados aquí numéricamente, solo string).
+                // Para evitar confusión, mostraremos el total que viene de BD.
+            } else {
+                document.getElementById('detDescuentoContainer').classList.add('hidden');
+            }
+
+            document.getElementById('detTotal').innerText = 'S/ ' + parseFloat(total).toFixed(2);
+            
+            // Generate Action Buttons based on status
+            const actionsDiv = document.getElementById('actionButtons');
+            actionsDiv.innerHTML = ''; // Clear previous
+            
+            if (estado === 'PENDIENTE') {
+                actionsDiv.innerHTML += `
+                    <a href="/reservas/${id}/pago" class="w-full py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-bold transition-colors shadow-lg shadow-green-500/20 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">payments</span>
+                        Registrar Pago / Check-in
+                    </a>
+                    <form action="/reservas/cancelar/${id}" method="post" class="w-full mt-2">
+                        <button type="submit" class="w-full py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-colors border border-red-500/20">
+                            Cancelar Reserva
+                        </button>
+                    </form>
+                `;
+            } else if (estado === 'PROCESANDO') {
+                actionsDiv.innerHTML += `
+                    <a href="/reservas/${id}/servicios" class="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                        Continuar Reserva
+                    </a>
+                    <form action="/reservas/${id}/cancelar-proceso" method="post" class="w-full">
+                        <button type="submit" class="w-full py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-colors border border-red-500/20 flex items-center justify-center gap-2" onclick="return confirm('¿Eliminar esta reserva incompleta?')">
+                            <span class="material-symbols-outlined">delete</span>
+                            Eliminar
+                        </button>
+                    </form>
+                `;
+            } else if (estado === 'ACTIVA') {
+                 actionsDiv.innerHTML += `
+                    <form action="/reservas/finalizar/${id}" method="post" class="w-full">
+                        <button type="submit" class="w-full py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-bold transition-colors shadow-lg shadow-gray-500/20">
+                            Finalizar Estancia (Check-out)
+                        </button>
+                    </form>
+                `;
+            } else if (estado === 'FINALIZADA') {
+                 actionsDiv.innerHTML += `
+                    <div class="w-full py-3 rounded-lg bg-blue-500/10 text-blue-400 font-bold text-center border border-blue-500/20">
+                        Reserva Finalizada
+                    </div>
+                `;
+            } else if (estado === 'CANCELADA') {
+                 actionsDiv.innerHTML += `
+                    <form action="/reservas/eliminar/${id}" method="post" class="w-full" onsubmit="return confirm('¿Está seguro que desea eliminar esta reserva? Esta acción no se puede deshacer.')">
+                        <button type="submit" class="w-full py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-colors border border-red-500/20">
+                            Eliminar Reserva
+                        </button>
+                    </form>
+                `;
+            } else {
+                 actionsDiv.innerHTML += `
+                    <div class="w-full py-3 rounded-lg bg-white/5 text-white/40 font-bold text-center border border-white/5 cursor-not-allowed">
+                        No hay acciones disponibles
+                    </div>
+                `;
+            }
+        }
+    </script>
+  </body>
+</html>

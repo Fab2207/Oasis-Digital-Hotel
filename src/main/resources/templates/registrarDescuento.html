@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html class="dark" lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+          <div class="w-full max-w-3xl mx-auto flex flex-col gap-8">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center gap-2 text-sm text-white/60">
+              <a
+                th:href="@{/descuentos}"
+                class="hover:text-primary transition-colors"
+                >Descuentos</a
+              >
+              <span class="material-symbols-outlined text-xs"
+                >chevron_right</span
+              >
+              <span class="text-white font-medium">Registrar Descuento</span>
+            </div>
+
+            <!-- PageHeading -->
+            <div class="flex flex-col gap-2">
+              <h1 class="text-white text-4xl font-black tracking-tight">
+                Registrar Nuevo Descuento
+              </h1>
+              <p class="text-white/60 text-lg font-medium">
+                Complete el formulario para crear un nuevo código de descuento.
+              </p>
+            </div>
+
+            <!-- Form Card -->
+            <div
+              class="glass-panel rounded-2xl p-8 border border-white/10 shadow-xl relative overflow-hidden"
+            >
+              <!-- Decorative background -->
+              <div
+                class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"
+              ></div>
+
+              <form
+                th:action="@{/descuentos/crear}"
+                th:object="${descuento}"
+                method="post"
+                class="flex flex-col gap-8 relative z-10"
+              >
+                <!-- Código y Tipo -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Código</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >sell</span
+                        >
+                      </span>
+                      <input
+                        type="text"
+                        th:field="*{codigo}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300 uppercase"
+                        placeholder="Ej. VERANO2024"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Tipo</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >category</span
+                        >
+                      </span>
+                      <select
+                        th:field="*{tipo}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300 appearance-none"
+                      >
+                        <option value="PORCENTAJE">Porcentaje (%)</option>
+                        <option value="MONTO_FIJO">Monto Fijo ($)</option>
+                      </select>
+                      <span
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined"
+                          >expand_more</span
+                        >
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Valor y Descripción -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Valor</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >attach_money</span
+                        >
+                      </span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        th:field="*{valor}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Descripción</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >description</span
+                        >
+                      </span>
+                      <input
+                        type="text"
+                        th:field="*{descripcion}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="Descripción del descuento"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Fechas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Fecha Inicio</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >calendar_today</span
+                        >
+                      </span>
+                      <input
+                        type="date"
+                        th:field="*{fechaInicio}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Fecha Fin</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >event</span
+                        >
+                      </span>
+                      <input
+                        type="date"
+                        th:field="*{fechaFin}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Límites -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Monto Mínimo</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none font-bold"
+                        >$</span
+                      >
+                      <input
+                        type="number"
+                        step="0.01"
+                        th:field="*{montoMinimo}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Tope Descuento</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none font-bold"
+                        >$</span
+                      >
+                      <input
+                        type="number"
+                        step="0.01"
+                        th:field="*{montoMaximoDescuento}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label
+                      class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
+                      >Límite Usos</label
+                    >
+                    <div class="relative">
+                      <span
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >repeat</span
+                        >
+                      </span>
+                      <input
+                        type="number"
+                        th:field="*{usosMaximos}"
+                        class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                        placeholder="100"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Checkbox Activo -->
+                <div
+                  class="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10"
+                >
+                  <input
+                    type="checkbox"
+                    th:field="*{activo}"
+                    class="w-5 h-5 rounded border-white/20 bg-black/40 text-primary focus:ring-primary focus:ring-offset-0 transition-all"
+                  />
+                  <label
+                    class="text-white font-medium cursor-pointer select-none"
+                    >Descuento Activo</label
+                  >
+                </div>
+
+                <!-- Actions -->
+                <div
+                  class="flex justify-end gap-4 mt-4 pt-6 border-t border-white/10"
+                >
+                  <a
+                    th:href="@{/descuentos}"
+                    class="px-6 py-3 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium"
+                  >
+                    Cancelar
+                  </a>
+                  <button
+                    type="submit"
+                    class="px-8 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105 flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined">save</span>
+                    Guardar Descuento
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

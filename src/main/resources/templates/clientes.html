@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html
+  class="dark"
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
+  <head th:replace="fragments/common :: head"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- SideNavBar -->
+      <aside th:replace="fragments/common :: sidebar"></aside>
+
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Elements -->
+        <div
+          class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none"
+        >
+          <div
+            class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-[100px]"
+          ></div>
+        </div>
+
+        <!-- Top Header -->
+        <header th:replace="fragments/common :: navbar"></header>
+
+        <main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+          <div class="mx-auto max-w-7xl">
+            <!-- PageHeading -->
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
+              <div class="flex flex-col gap-1">
+                <h1 class="text-white text-3xl font-bold tracking-tight">
+                  Lista de Clientes
+                </h1>
+                <p class="text-white/60 text-base font-medium">
+                  Gestiona y consulta la información de todos los clientes
+                  registrados.
+                </p>
+              </div>
+              <a
+                th:href="@{/clientes/registrar}"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105"
+              >
+                <span class="material-symbols-outlined">add</span>
+                Nuevo Cliente
+              </a>
+            </div>
+
+            <!-- ToolBar -->
+            <div class="mb-6">
+              <form
+                th:action="@{/clientes}"
+                method="get"
+                class="flex flex-col md:flex-row gap-4"
+              >
+                <div class="relative flex-1 group">
+                  <span
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 group-focus-within:text-primary transition-colors"
+                  >
+                    <span class="material-symbols-outlined">search</span>
+                  </span>
+                  <input
+                    name="search"
+                    th:value="${search}"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
+                    placeholder="Buscar por nombre o email..."
+                    type="text"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="px-6 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+                >
+                  Buscar
+                </button>
+              </form>
+            </div>
+
+            <!-- Table -->
+            <div class="glass-panel rounded-2xl overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead
+                    class="bg-white/5 text-xs uppercase text-white/40 font-medium tracking-wider"
+                  >
+                    <tr>
+                      <th class="px-6 py-4">Nombre Completo</th>
+                      <th class="px-6 py-4">Correo Electrónico</th>
+                      <th class="px-6 py-4">Teléfono</th>
+                      <th class="px-6 py-4">Última Estancia</th>
+                      <th class="px-6 py-4 text-center">Reservas</th>
+                      <th class="px-6 py-4 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    <tr
+                      th:each="cliente : ${clientesPage?.content}"
+                      class="hover:bg-primary/10 transition-colors group"
+                    >
+                      <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                          <div
+                            class="size-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-xs font-bold text-white border border-white/10"
+                          >
+                            <span
+                              th:text="${cliente.nombres != null && cliente.nombres.length() > 0 ? #strings.substring(cliente.nombres,0,1) : '?'}"
+                              >E</span
+                            >
+                          </div>
+                          <span
+                            class="font-medium text-white group-hover:text-primary transition-colors"
+                            th:text="${cliente.nombres + ' ' + cliente.apellidos}"
+                            >Elena Rodríguez</span
+                          >
+                        </div>
+                      </td>
+                      <td
+                        class="px-6 py-4 text-white/70"
+                        th:text="${cliente.email}"
+                      >
+                        elena.r@email.com
+                      </td>
+                      <td
+                        class="px-6 py-4 text-white/70"
+                        th:text="${cliente.telefono}"
+                      >
+                        +34 611 223 344
+                      </td>
+                      <td class="px-6 py-4 text-white/70">
+                        <span
+                          th:if="${cliente.ultimaEstancia != null}"
+                          class="flex items-center gap-1.5"
+                        >
+                          <span
+                            class="material-symbols-outlined text-xs opacity-50"
+                            >event</span
+                          >
+                          <span
+                            th:text="${#temporals.format(cliente.ultimaEstancia, 'dd MMM, yyyy')}"
+                            >15 Oct, 2023</span
+                          >
+                        </span>
+                        <span
+                          th:unless="${cliente.ultimaEstancia != null}"
+                          class="text-white/20"
+                          >-</span
+                        >
+                      </td>
+                      <td class="px-6 py-4 text-center">
+                        <span
+                          class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/5"
+                          th:text="${cliente.totalReservas}"
+                          >5</span
+                        >
+                      </td>
+                      <td class="px-6 py-4 text-center">
+                        <div
+                          class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <a
+                            th:href="@{/clientes/ver/{id}(id=${cliente.id})}"
+                            class="p-2 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                            title="Ver Detalles"
+                          >
+                            <span class="material-symbols-outlined text-xl"
+                              >visibility</span
+                            >
+                          </a>
+                          <!-- Edit button removed for admin -->
+                          <!-- <a
+                            th:href="@{/clientes/editar/{id}(id=${cliente.id})}"
+                            class="p-2 rounded-lg text-accent hover:bg-accent/10 transition-colors"
+                            title="Editar"
+                          >
+                            <span class="material-symbols-outlined text-xl"
+                              >edit</span
+                            >
+                          </a> -->
+                          <button
+                            onclick="confirmarEliminacion(this)"
+                            th:data-id="${cliente.id}"
+                            class="p-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Eliminar"
+                          >
+                            <span class="material-symbols-outlined text-xl"
+                              >delete</span
+                            >
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr th:if="${clientesPage == null || clientesPage.empty}">
+                      <td
+                        colspan="6"
+                        class="px-6 py-12 text-center text-white/30 flex flex-col items-center gap-2"
+                      >
+                        <span
+                          class="material-symbols-outlined text-4xl opacity-50"
+                          >person_off</span
+                        >
+                        No se encontraron clientes registrados.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div
+                  class="p-4 border-t border-white/5 flex items-center justify-between bg-white/5"
+                  th:if="${clientesPage != null && clientesPage.totalPages > 1}"
+                >
+                  <span class="text-sm text-white/40">
+                    Página
+                    <span th:text="${clientesPage.number + 1}">1</span> de
+                    <span th:text="${clientesPage.totalPages}">10</span>
+                  </span>
+                  <div class="flex items-center gap-2">
+                    <a
+                      th:if="${clientesPage.hasPrevious()}"
+                      th:href="@{/clientes(page=${clientesPage.number - 1}, search=${search})}"
+                      class="p-2 rounded-lg hover:bg-white/10 text-white transition-colors"
+                    >
+                      <span class="material-symbols-outlined"
+                        >chevron_left</span
+                      >
+                    </a>
+                    <a
+                      th:if="${clientesPage.hasNext()}"
+                      th:href="@{/clientes(page=${clientesPage.number + 1}, search=${search})}"
+                      class="p-2 rounded-lg hover:bg-white/10 text-white transition-colors"
+                    >
+                      <span class="material-symbols-outlined"
+                        >chevron_right</span
+                      >
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Formulario oculto para eliminación segura -->
+    <form id="deleteForm" method="post" style="display: none">
+      <input
+        type="hidden"
+        th:if="${_csrf != null}"
+        th:name="${_csrf.parameterName}"
+        th:value="${_csrf.token}"
+      />
+    </form>
+
+    <script>
+      function confirmarEliminacion(button) {
+        const clienteId = button.getAttribute("data-id");
+        if (
+          confirm(
+            "¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer."
+          )
+        ) {
+          const form = document.getElementById("deleteForm");
+          form.action = `/clientes/eliminar/${clienteId}`;
+          form.submit();
+        }
+      }
+    </script>
+  </body>
+</html>
