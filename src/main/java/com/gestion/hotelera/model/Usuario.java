@@ -65,15 +65,14 @@ public class Usuario implements UserDetails {
     }
 
     public void setUsername(String username) {
-        if (username != null && username.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre de usuario no puede estar vacío");
-        }
-        if (username != null && (username.contains("<") || username.contains(">") || username.contains("'")
-                || username.contains("\"") || username.contains(";") || username.contains("--"))) {
+        if (username != null && !username.trim().isEmpty()
+                && (username.contains("<") || username.contains(">") || username.contains("'")
+                        || username.contains("\"") || username.contains(";") || username.contains("--"))) {
             throw new IllegalArgumentException("El nombre de usuario contiene caracteres no permitidos");
         }
+        // Allow empty username (it will be handled by logic to ignore the user
+        // creation)
         this.username = username != null ? username.trim() : null;
-
     }
 
     public String getPassword() {
