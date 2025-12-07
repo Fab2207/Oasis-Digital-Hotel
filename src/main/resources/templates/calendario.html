@@ -224,7 +224,7 @@
                       th:each="dia : ${diasMes}"
                       class="border-b border-r border-white/5 h-16 transition-all duration-200 relative group cursor-pointer hover:brightness-110"
                       th:with="info=${disponibilidad.get(habitacion.id).get(dia.fecha)}"
-                      th:classappend="${info['estado'] == 'ACTIVA' || info['estado'] == 'OCUPADA'} ? 'bg-accent/80 shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]' : 
+                      th:classappend="${info['estado'] == 'ACTIVA' || info['estado'] == 'OCUPADA'} ? 'bg-green-600 shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]' : 
                                       (${info['estado'] == 'PENDIENTE'} ? 'bg-yellow-500/60' : 
                                       (${info['estado'] == 'FINALIZADA'} ? 'bg-blue-500/60' : 
                                       (${info['estado'] == 'MANTENIMIENTO'} ? 'bg-red-500/80' : 'hover:bg-white/5')))"
@@ -233,7 +233,7 @@
                       <!-- Content inside cell (optional, maybe icon) -->
                       <div
                         th:if="${info['estado'] == 'ACTIVA'}"
-                        class="w-full h-full flex items-center justify-center text-black/40"
+                        class="w-full h-full flex items-center justify-center text-white/80"
                       >
                         <span class="material-symbols-outlined text-lg"
                           >check_circle</span

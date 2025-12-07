@@ -56,7 +56,7 @@ public class ReportesController {
         // Calcular KPIs basados en las reservas filtradas
         double ingresosTotales = reservas.stream()
                 .filter(r -> "FINALIZADA".equals(r.getEstadoReserva()) || "ACTIVA".equals(r.getEstadoReserva()))
-                .mapToDouble(Reserva::getTotalPagar)
+                .mapToDouble(Reserva::calcularTotalConDescuento)
                 .sum();
 
         long totalHabitaciones = habitacionService.contarHabitaciones();
@@ -123,6 +123,24 @@ public class ReportesController {
         }
     }
 
+    @GetMapping("/api/ocupacion")
+    @ResponseBody
+    public List<Map<String, Object>> getOcupacionPorPeriodo(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+        try {
+            if (fechaInicio == null || fechaFin == null) {
+                return List.of();
+            }
+            if (fechaInicio.isAfter(fechaFin)) {
+                return List.of();
+            }
+            return reservaService.getOcupacionDiariaPorPeriodo(fechaInicio, fechaFin);
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
     @GetMapping("/exportar-pdf")
     public String exportarPdf(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
@@ -151,7 +169,7 @@ public class ReportesController {
 
         double ingresosTotales = reservas.stream()
                 .filter(r -> "FINALIZADA".equals(r.getEstadoReserva()) || "ACTIVA".equals(r.getEstadoReserva()))
-                .mapToDouble(Reserva::getTotalPagar)
+                .mapToDouble(Reserva::calcularTotalConDescuento)
                 .sum();
 
         long totalHabitaciones = habitacionService.contarHabitaciones();

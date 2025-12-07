@@ -280,14 +280,13 @@ public class ReservaService {
         }
 
         reservas.stream()
-                .filter(r -> r.getFechaSalidaReal() != null)
-                .filter(r -> !r.getFechaSalidaReal().isBefore(inicio) && !r.getFechaSalidaReal().isAfter(fin))
+                .filter(r -> EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
+                        EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()))
                 .forEach(r -> {
-                    double base = r.getTotalPagar() != null ? r.getTotalPagar() : 0.0;
-                    double servicios = r.calcularTotalServicios();
-                    double descuento = r.getMontoDescuento() != null ? r.getMontoDescuento() : 0.0;
-                    double total = Math.max(0, base + servicios - descuento);
-                    ingresosPorFecha.merge(r.getFechaSalidaReal(), total, Double::sum);
+                    LocalDate fechaIngreso = r.getFechaSalidaReal() != null ? r.getFechaSalidaReal() : r.getFechaFin();
+                    if (fechaIngreso != null && !fechaIngreso.isBefore(inicio) && !fechaIngreso.isAfter(fin)) {
+                        ingresosPorFecha.merge(fechaIngreso, r.calcularTotalConDescuento(), Double::sum);
+                    }
                 });
 
         return ingresosPorFecha.entrySet().stream()
@@ -295,6 +294,34 @@ public class ReservaService {
                     Map<String, Object> map = new HashMap<>();
                     map.put("fecha", e.getKey().toString());
                     map.put("ingresos", e.getValue());
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getOcupacionDiariaPorPeriodo(LocalDate inicio, LocalDate fin) {
+        List<Reserva> reservas = reservaRepository.findAll();
+        Map<LocalDate, Long> ocupacionPorFecha = new TreeMap<>();
+
+        LocalDate fecha = inicio;
+        while (!fecha.isAfter(fin)) {
+            final LocalDate current = fecha;
+            long ocupadas = reservas.stream()
+                    .filter(r -> (EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
+                            EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva())))
+                    .filter(r -> !r.getFechaInicio().isAfter(current) && r.getFechaFin().isAfter(current))
+                    .count();
+
+            ocupacionPorFecha.put(fecha, ocupadas);
+            fecha = fecha.plusDays(1);
+        }
+
+        return ocupacionPorFecha.entrySet().stream()
+                .map(e -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("fecha", e.getKey().toString());
+                    map.put("ocupacion", e.getValue());
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -339,19 +366,22 @@ public class ReservaService {
         return reservaRepository.countByEstadoReservaIgnoreCase(estado);
     }
 
-    // Contar check-ins pendientes (reservas confirmadas que faltan entrar)
+    // Contar check-ins: Todas las reservas vigentes (Pendientes + Activas)
     @Transactional(readOnly = true)
     public long contarCheckInsHoy() {
+        List<String> estados = Arrays.asList(EstadoReserva.PENDIENTE.getValor(), EstadoReserva.ACTIVA.getValor());
         return reservaRepository.findAll().stream()
-                .filter(r -> EstadoReserva.PENDIENTE.getValor().equalsIgnoreCase(r.getEstadoReserva()))
+                .filter(r -> estados.contains(r.getEstadoReserva()))
                 .count();
     }
 
-    // Contar check-outs pendientes (gente que está dentro y falta salir)
+    // Contar check-outs: Reservas finalizadas HOY
     @Transactional(readOnly = true)
     public long contarCheckOutsHoy() {
+        LocalDate hoy = LocalDate.now();
         return reservaRepository.findAll().stream()
-                .filter(r -> EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()))
+                .filter(r -> EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva()))
+                .filter(r -> r.getFechaSalidaReal() != null && hoy.equals(r.getFechaSalidaReal()))
                 .count();
     }
 
@@ -429,7 +459,7 @@ public class ReservaService {
         double total = reservas.stream()
                 .filter(r -> r.getFechaSalidaReal() != null)
                 .filter(r -> !r.getFechaSalidaReal().isBefore(inicio))
-                .mapToDouble(Reserva::getTotalPagar)
+                .mapToDouble(Reserva::calcularTotalConDescuento)
                 .sum();
 
         Map<String, Object> resultado = new HashMap<>();

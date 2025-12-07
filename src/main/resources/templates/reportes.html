@@ -301,6 +301,7 @@
                         .getContext("2d");
                       let chartUrl = "/reportes/api/ingresos";
                       let label = "Ingresos";
+                      let chartType = "line";
 
                       // Get theme colors from CSS variables if possible, or default
                       const primaryColor =
@@ -309,11 +310,14 @@
                           .trim() || "#10B981";
 
                       let borderColor = primaryColor;
-                      let backgroundColor = primaryColor + "20"; // 20% opacity
 
-                      if (tipoReporte === "ocupacion") {
-                        chartUrl = "/reportes/api/movimiento";
-                        label = "Ocupación";
+                      if (
+                        tipoReporte === "ocupacion" ||
+                        tipoReporte === "rendimiento"
+                      ) {
+                        chartUrl = "/reportes/api/ocupacion";
+                        label = "Ocupación Diaria (Habitaciones)";
+                        chartType = "bar";
                       }
 
                       fetch(
@@ -327,13 +331,9 @@
                           if (tipoReporte === "financiero") {
                             labels = data.map((d) => d.fecha);
                             values = data.map((d) => d.ingresos);
-                          } else if (
-                            tipoReporte === "ocupacion" ||
-                            tipoReporte === "rendimiento"
-                          ) {
+                          } else {
                             labels = data.map((d) => d.fecha);
-                            values = data.map((d) => d.checkIns + d.checkOuts);
-                            label = "Movimientos (Check-in + Check-out)";
+                            values = data.map((d) => d.ocupacion);
                           }
 
                           // Create gradient
@@ -347,7 +347,7 @@
                           gradient.addColorStop(1, primaryColor + "00"); // 0% opacity
 
                           new Chart(ctx, {
-                            type: "line",
+                            type: chartType,
                             data: {
                               labels: labels,
                               datasets: [
@@ -355,8 +355,12 @@
                                   label: label,
                                   data: values,
                                   borderColor: primaryColor,
-                                  backgroundColor: gradient,
-                                  borderWidth: 3,
+                                  backgroundColor:
+                                    chartType === "bar"
+                                      ? primaryColor + "80"
+                                      : gradient,
+                                  borderWidth: chartType === "bar" ? 0 : 3,
+                                  borderRadius: chartType === "bar" ? 4 : 0,
                                   pointBackgroundColor: "#121212",
                                   pointBorderColor: primaryColor,
                                   pointBorderWidth: 2,

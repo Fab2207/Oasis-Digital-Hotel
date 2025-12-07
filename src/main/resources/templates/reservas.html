@@ -97,7 +97,7 @@
                                 <tbody class="divide-y divide-white/5">
                                     <tr th:each="reserva : ${reservas}" 
                                         th:with="serviciosStr=${reserva.servicios.isEmpty() ? 'Ninguno' : #strings.listJoin(reserva.servicios.![nombre], ', ')}"
-                                        th:onclick="seleccionarReserva([[${reserva.id}]], [[${reserva.cliente.nombres} + ' ' + ${reserva.cliente.apellidos}]], [[${reserva.cliente.email}]], [[${reserva.cliente.telefono}]], [[${reserva.fechaInicio}]], [[${reserva.fechaFin}]], [[${reserva.horaEntrada}]], [[${reserva.horaSalida}]], [[${reserva.habitacion.numero} + ' - ' + ${reserva.habitacion.tipo}]], [[${reserva.diasEstadia} + ' días']], [[${reserva.totalPagar}]], [[${reserva.montoDescuento}]], [[${reserva.estadoReserva}]], [[${serviciosStr}]])"
+                                        th:onclick="seleccionarReserva([[${reserva.id}]], [[${reserva.cliente.nombres} + ' ' + ${reserva.cliente.apellidos}]], [[${reserva.cliente.email}]], [[${reserva.cliente.telefono}]], [[${reserva.fechaInicio}]], [[${reserva.fechaFin}]], [[${reserva.horaEntrada}]], [[${reserva.horaSalida}]], [[${reserva.habitacion.numero} + ' - ' + ${reserva.habitacion.tipo}]], [[${reserva.diasEstadia} + ' días']], [[${reserva.calcularTotalConDescuento()}]], [[${reserva.montoDescuento}]], [[${reserva.estadoReserva}]], [[${serviciosStr}]])"
                                         class="hover:bg-white/5 cursor-pointer transition-colors group">
                                         <td class="px-6 py-4 text-white font-bold group-hover:text-primary transition-colors" th:text="'#' + ${reserva.id}">#123</td>
                                         <td class="px-6 py-4">
@@ -120,7 +120,7 @@
                                                   (reserva.estadoReserva == 'FINALIZADA' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'))}"
                                                   th:text="${reserva.estadoReserva}">Activa</span>
                                         </td>
-                                        <td class="px-6 py-4 text-right text-white font-mono font-bold" th:text="'S/ ' + ${#numbers.formatDecimal(reserva.totalPagar, 1, 2)}">S/ 200.00</td>
+                                        <td class="px-6 py-4 text-right text-white font-mono font-bold" th:text="'S/ ' + ${#numbers.formatDecimal(reserva.calcularTotalConDescuento(), 1, 2)}">S/ 200.00</td>
                                     </tr>
                                     <tr th:if="${#lists.isEmpty(reservas)}">
                                         <td colspan="6" class="px-6 py-12 text-center text-white/30 flex flex-col items-center gap-2">
