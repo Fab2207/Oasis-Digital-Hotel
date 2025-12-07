@@ -125,10 +125,24 @@ public class ClienteService {
     public boolean eliminarClientePorId(@NonNull Long id) {
         return clienteRepository.findById(id)
                 .map(cliente -> {
+                    // 1. Validar y eliminar TODAS las reservas asociadas (incluyendo
+                    // finalizadas/canceladas)
                     validarYEliminarReservasCliente(cliente);
-                    clienteRepository.deleteById(id);
+
+                    // 2. Capturar usuario asociado para posible eliminación
+                    Usuario usuario = cliente.getUsuario();
+
+                    // 3. Eliminar el cliente (Dueño de la FK usuario_id)
+                    clienteRepository.delete(cliente);
+                    clienteRepository.flush(); // Forzar sincronización
+
+                    // 4. Eliminar el usuario asociado si existe (Limpieza completa)
+                    if (usuario != null) {
+                        usuarioRepository.delete(usuario);
+                    }
+
                     registrarAuditoriaEliminacion(cliente);
-                    logger.info("Cliente eliminado: ID={}, DNI={}", id, cliente.getDni());
+                    logger.info("Cliente y sus datos asociados eliminados: ID={}, DNI={}", id, cliente.getDni());
                     return true;
                 })
                 .orElse(false);
@@ -296,6 +310,14 @@ public class ClienteService {
     private void cargarDatosTransitorios(Cliente cliente) {
         List<Reserva> reservas = reservaRepository.findByCliente(cliente);
         cliente.setTotalReservas((long) reservas.size());
+
+        Optional<Reserva> reservaActiva = reservas.stream().filter(this::esReservaActiva).findFirst();
+        if (reservaActiva.isPresent()) {
+            cliente.setHasActiveReservations(true);
+            cliente.setActiveReservationId(reservaActiva.get().getId());
+        } else {
+            cliente.setHasActiveReservations(false);
+        }
 
         reservas.stream()
                 .filter(r -> EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva()))

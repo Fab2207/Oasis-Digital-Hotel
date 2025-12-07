@@ -44,8 +44,14 @@ public class Cliente {
     @Column(length = 20)
     private String telefono;
 
+    @Column
+    private Integer puntos = 0;
+
     @Transient
     private boolean hasActiveReservations;
+
+    @Transient
+    private Long activeReservationId;
 
     @OneToOne
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
@@ -130,6 +136,14 @@ public class Cliente {
         this.hasActiveReservations = hasActiveReservations;
     }
 
+    public Long getActiveReservationId() {
+        return activeReservationId;
+    }
+
+    public void setActiveReservationId(Long activeReservationId) {
+        this.activeReservationId = activeReservationId;
+    }
+
     public Usuario getUsuario() {
         return usuario;
     }
@@ -152,5 +166,13 @@ public class Cliente {
 
     public void setTotalReservas(Long totalReservas) {
         this.totalReservas = totalReservas;
+    }
+
+    public Integer getPuntos() {
+        return puntos;
+    }
+
+    public void setPuntos(Integer puntos) {
+        this.puntos = puntos;
     }
 }

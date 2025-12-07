@@ -51,6 +51,9 @@ class ReservaServiceTest {
     @Mock
     private NotificacionService notificacionService;
 
+    @Mock
+    private com.gestion.hotelera.repository.ClienteRepository clienteRepository;
+
     private ReservaService reservaService;
 
     private Cliente cliente;
@@ -65,7 +68,8 @@ class ReservaServiceTest {
                 servicioRepository,
                 habitacionService,
                 emailService,
-                notificacionService);
+                notificacionService,
+                clienteRepository);
 
         // Datos de prueba
         cliente = new Cliente();

@@ -117,8 +117,11 @@
                 >
                   Puntos de Lealtad
                 </p>
-                <p class="text-accent text-4xl font-black tracking-tight">
-                  4,500
+                <p
+                  class="text-accent text-4xl font-black tracking-tight"
+                  th:text="${cliente.puntos ?: 0}"
+                >
+                  0
                 </p>
               </div>
               <div
@@ -328,7 +331,7 @@
                         </td>
                         <td
                           class="px-6 py-4 font-mono font-bold text-white"
-                          th:text="'S/. ' + ${reserva.totalPagar}"
+                          th:text="'S/. ' + ${#numbers.formatDecimal(reserva.calcularTotalConDescuento(), 1, 2)}"
                         >
                           S/. 3,250.00
                         </td>

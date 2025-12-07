@@ -292,7 +292,7 @@
 
         <!-- DESCUENTOS (Admin Only) -->
         <a
-          sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_RECEPCIONISTA')"
+          sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_RECEPCIONISTA', 'ROLE_CLIENTE')"
           class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-white/70 hover:bg-primary/10 hover:text-primary transition-all duration-200 group"
           th:classappend="${(request?.requestURI?.startsWith('/descuentos') == true) ? 'bg-primary/10 text-primary border border-primary/20' : ''}"
           th:href="@{/descuentos}"
@@ -320,7 +320,7 @@
 
         <!-- SERVICIOS (Admin & Recep) -->
         <a
-          sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_RECEPCIONISTA')"
+          sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_RECEPCIONISTA', 'ROLE_CLIENTE')"
           class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-white/70 hover:bg-primary/10 hover:text-primary transition-all duration-200 group"
           th:classappend="${(request?.requestURI?.startsWith('/servicios') == true) ? 'bg-primary/10 text-primary border border-primary/20' : ''}"
           th:href="@{/servicios}"

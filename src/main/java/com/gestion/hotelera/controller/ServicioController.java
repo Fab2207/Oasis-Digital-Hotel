@@ -20,7 +20,7 @@ public class ServicioController {
     }
 
     // ADMIN y RECEPCIONISTA pueden ver servicios
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_RECEPCIONISTA')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_RECEPCIONISTA', 'ROLE_CLIENTE')")
     @GetMapping
     public String listarServicios(Model model, Authentication auth) {
         model.addAttribute("servicios", servicioService.obtenerTodosLosServicios());

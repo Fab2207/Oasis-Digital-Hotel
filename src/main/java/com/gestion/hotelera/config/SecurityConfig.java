@@ -104,10 +104,8 @@ public class SecurityConfig {
 
                                                 // Control financiero: Administra Descuentos/Cupones y ve todos los
                                                 // ingresos
-                                                // Control financiero: Administra Descuentos/Cupones y ve todos los
-                                                // ingresos
                                                 .requestMatchers("/descuentos/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
+                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
 
                                                 // Dashboard: Accede a estadísticas en tiempo real (ocupación, ingresos,
                                                 // ventas)
@@ -138,24 +136,20 @@ public class SecurityConfig {
                                                                 "/reservas/factura/*", "/reservas/*/pago")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
 
+                                                .requestMatchers("/reservas/*/aplicar-descuento",
+                                                                "/reservas/*/quitar-descuento")
+                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
+
+                                                // Cancelación: Permitir a clientes cancelar sus propias reservas
+                                                .requestMatchers("/reservas/cancelar/**")
+                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
+
                                                 .requestMatchers("/reservas/**", "/recepcion/**")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
 
                                                 // Ciclo de Huésped: Ejecuta el Check-in (entrada) y el Check-out
                                                 // (salida)
                                                 .requestMatchers("/reservas/checkin/**", "/reservas/checkout/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
-
-                                                // Cancelación: Permitir a clientes cancelar sus propias reservas
-                                                .requestMatchers("/reservas/cancelar/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-
-                                                // Descuentos en reservas (clientes pueden aplicar cupones)
-                                                .requestMatchers("/reservas/*/aplicar-descuento",
-                                                                "/reservas/*/quitar-descuento")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-
-                                                .requestMatchers("/reservas/**", "/recepcion/**")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
 
                                                 // Atención y Clientes: Registra nuevos clientes y consulta el historial
@@ -165,8 +159,10 @@ public class SecurityConfig {
 
                                                 // Disponibilidad: Verifica la disponibilidad de habitaciones en tiempo
                                                 // real
-                                                .requestMatchers("/habitaciones", "/servicios", "/calendario/**")
+                                                .requestMatchers("/habitaciones", "/calendario/**")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
+                                                .requestMatchers("/servicios")
+                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
 
                                                 // ==== CLIENTE - AUTOGESTIÓN ====
                                                 // Autogestión: Se registra, inicia sesión (Login) y gestiona los datos

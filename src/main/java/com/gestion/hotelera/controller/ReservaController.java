@@ -579,7 +579,8 @@ public class ReservaController {
 
                     double montoServicios = reserva.calcularTotalServicios();
                     double montoBase = reserva.getTotalPagar() != null ? reserva.getTotalPagar() : 0.0;
-                    double montoTotal = montoBase + montoServicios;
+                    double descuento = reserva.getMontoDescuento() != null ? reserva.getMontoDescuento() : 0.0;
+                    double montoTotal = Math.max(0, montoBase + montoServicios - descuento);
 
                     model.addAttribute("reserva", reserva);
                     model.addAttribute("montoBase", montoBase);

@@ -26,7 +26,12 @@
                     Administra las reservas, check-ins y check-outs del hotel.
                   </p>
                 </div>
-                <!-- Button removed as per admin restriction -->
+                <div class="flex items-center gap-3">
+                    <a th:href="@{/reservas/crear}" class="px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105 flex items-center gap-2">
+                        <span class="material-symbols-outlined">add</span>
+                        <span>Nueva Reserva</span>
+                    </a>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">

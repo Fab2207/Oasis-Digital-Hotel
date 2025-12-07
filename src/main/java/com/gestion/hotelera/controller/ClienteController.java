@@ -60,7 +60,9 @@ public class ClienteController {
      */
     @GetMapping("/registrar")
     public String mostrarFormularioRegistro(Model model) {
-        model.addAttribute("cliente", new Cliente());
+        Cliente cliente = new Cliente();
+        cliente.setUsuario(new com.gestion.hotelera.model.Usuario());
+        model.addAttribute("cliente", cliente);
         return "registroCliente";
     }
 

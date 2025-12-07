@@ -31,19 +31,22 @@ public class ReservaService {
     private final HabitacionService habitacionService;
     private final EmailService emailService;
     private final NotificacionService notificacionService;
+    private final com.gestion.hotelera.repository.ClienteRepository clienteRepository;
 
     public ReservaService(ReservaRepository reservaRepository,
             AuditoriaService auditoriaService,
             ServicioRepository servicioRepository,
             HabitacionService habitacionService,
             EmailService emailService,
-            NotificacionService notificacionService) {
+            NotificacionService notificacionService,
+            com.gestion.hotelera.repository.ClienteRepository clienteRepository) {
         this.reservaRepository = reservaRepository;
         this.auditoriaService = auditoriaService;
         this.servicioRepository = servicioRepository;
         this.habitacionService = habitacionService;
         this.emailService = emailService;
         this.notificacionService = notificacionService;
+        this.clienteRepository = clienteRepository;
     }
 
     @Transactional
@@ -56,6 +59,15 @@ public class ReservaService {
         verificarDisponibilidadFechas(habitacionId, reserva, reservaId);
 
         try {
+            // Aumentar puntos de lealtad si es nueva reserva
+            if (reserva.getId() == null && reserva.getCliente() != null && reserva.getCliente().getId() != null) {
+                clienteRepository.findById(reserva.getCliente().getId()).ifPresent(clienteDb -> {
+                    clienteDb.setPuntos((clienteDb.getPuntos() != null ? clienteDb.getPuntos() : 0) + 10);
+                    clienteRepository.save(clienteDb);
+                    reserva.setCliente(clienteDb);
+                });
+            }
+
             Reserva guardada = reservaRepository.save(reserva);
             actualizarEstadoHabitacionSegunReserva(guardada);
             registrarAuditoriaCreacionOActualizacion(guardada);

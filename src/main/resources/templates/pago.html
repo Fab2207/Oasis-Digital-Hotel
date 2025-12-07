@@ -54,6 +54,14 @@
               <p class="text-white/60 text-base font-medium">
                 Complete su reserva de forma segura.
               </p>
+            <!-- Alerts -->
+            <div th:if="${successMessage}" class="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 flex items-center gap-3 animate-fade-in-down">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span th:text="${successMessage}">Operación exitosa</span>
+            </div>
+            <div th:if="${errorMessage}" class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3 animate-fade-in-down">
+                <span class="material-symbols-outlined">error</span>
+                <span th:text="${errorMessage}">Error en la operación</span>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -224,7 +232,7 @@
                               name="cvv"
                               placeholder="123"
                               type="text"
-                              maxlength="4"
+                              maxlength="3"
                             />
                           </div>
                         </div>

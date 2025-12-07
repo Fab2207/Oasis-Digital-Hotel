@@ -31,6 +31,9 @@ class ReservaCalculoTest {
     @Mock
     private NotificacionService notificacionService;
 
+    @Mock
+    private com.gestion.hotelera.repository.ClienteRepository clienteRepository;
+
     private ReservaService reservaService;
 
     @BeforeEach
@@ -42,7 +45,8 @@ class ReservaCalculoTest {
                 servicioRepository,
                 habitacionService,
                 emailService,
-                notificacionService);
+                notificacionService,
+                clienteRepository);
     }
 
     @Test

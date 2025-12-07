@@ -132,7 +132,7 @@
                     </span>
                     <p
                       class="text-white font-bold text-lg font-mono"
-                      th:text="${'S/. ' + #numbers.formatDecimal(reserva.totalPagar != null ? reserva.totalPagar : 0, 1, 2)}"
+                      th:text="${'S/. ' + #numbers.formatDecimal(reserva.calcularTotalConDescuento(), 1, 2)}"
                     >
                       S/. 1,200.00
                     </p>
@@ -148,7 +148,7 @@
                     </span>
                     <p
                       class="text-white/80 text-sm font-medium leading-relaxed"
-                      th:text="${#lists.isEmpty(reserva.servicios) ? 'Sin servicios adicionales' : #strings.listJoin(reserva.servicios.![nombre], ', ')}"
+                      th:text="${#lists.isEmpty(reserva.servicios) ? 'Sin servicios adicionales' : #strings.listJoin(reserva.servicios.![nombre + ' (S/. ' + precio + ')'], ', ')}"
                     >
                       Spa, Cena
                     </p>
