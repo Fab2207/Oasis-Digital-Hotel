@@ -388,69 +388,118 @@
     </div>
 
     <script>
+      // Variables para guardar fechas seleccionadas
+      let fechaInicioVal = "";
+      let fechaFinVal = "";
+
+      // Función principal para cargar habitaciones
+      async function cargarHabitaciones(tipo) {
+        const roomNumberSection = document.getElementById("roomNumberSection");
+        const numeroHabitacionSelect =
+          document.getElementById("numeroHabitacion");
+        const roomInfo = document.getElementById("roomInfo");
+
+        roomNumberSection.style.display = "block";
+        numeroHabitacionSelect.disabled = true;
+        numeroHabitacionSelect.innerHTML =
+          '<option value="">Cargando habitaciones...</option>';
+        roomInfo.textContent = "";
+
+        // Obtener fechas frescas del DOM
+        const fi = document.querySelector('input[name="fechaEntrada"]')?.value;
+        const ff = document.querySelector('input[name="fechaSalida"]')?.value;
+
+        if (!fi || !ff) {
+          numeroHabitacionSelect.innerHTML =
+            '<option value="">Seleccione fechas primero</option>';
+          roomInfo.textContent = "Seleccione fechas de entrada y salida";
+          roomInfo.className = "text-xs text-yellow-400 ml-1";
+          return;
+        }
+
+        try {
+          // Updated Endpoint Query
+          const response = await fetch(
+            `/habitaciones/api/disponibles?inicio=${fi}&fin=${ff}`
+          );
+
+          if (!response.ok) {
+            throw new Error("Error al cargar habitaciones");
+          }
+
+          let habitaciones = await response.json();
+
+          // Filter by type manually since the API returns all available for dates
+          if (tipo) {
+            habitaciones = habitaciones.filter(
+              (h) => h.tipo.toUpperCase() === tipo.toUpperCase()
+            );
+          }
+
+          numeroHabitacionSelect.innerHTML =
+            '<option value="">Seleccione una habitación...</option>';
+
+          if (habitaciones.length === 0) {
+            numeroHabitacionSelect.innerHTML +=
+              '<option value="">No hay habitaciones disponibles de este tipo</option>';
+            roomInfo.textContent =
+              "No hay habitaciones disponibles para estas fechas.";
+            roomInfo.className = "text-xs text-red-400 ml-1";
+          } else {
+            habitaciones.forEach((hab) => {
+              const option = document.createElement("option");
+              option.value = hab.numero; // Using numero as expected by backend or needs ID? Verify backend. Usually ID is safer but form might expect number.
+              // Assuming backend expects ID actually for mapping relation
+              // Checking previous code: name="numeroHabitacion" value=hab.numero.
+              // Controller 'solicitar' probably looks up by number. Let's keep it safe.
+              option.textContent = `Habitación ${hab.numero} - S/. ${hab.precioPorNoche}/noche`;
+              option.dataset.precio = hab.precioPorNoche;
+              numeroHabitacionSelect.appendChild(option);
+            });
+
+            roomInfo.textContent = `${habitaciones.length} habitación(es) disponible(s)`;
+            roomInfo.className = "text-xs text-primary ml-1";
+            numeroHabitacionSelect.disabled = false;
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          numeroHabitacionSelect.innerHTML =
+            '<option value="">Error al cargar habitaciones</option>';
+          roomInfo.textContent = "Error al cargar habitaciones.";
+          roomInfo.className = "text-xs text-red-400 ml-1";
+        }
+      }
+
+      // Listeners para fechas
+      const fechaEntradaInput = document.querySelector(
+        'input[name="fechaEntrada"]'
+      );
+      const fechaSalidaInput = document.querySelector(
+        'input[name="fechaSalida"]'
+      );
+
+      function onDateChange() {
+        const selectedTypeRadio = document.querySelector(
+          'input[name="tipo"]:checked'
+        );
+        if (
+          selectedTypeRadio &&
+          fechaEntradaInput.value &&
+          fechaSalidaInput.value
+        ) {
+          cargarHabitaciones(selectedTypeRadio.value);
+        }
+      }
+
+      if (fechaEntradaInput)
+        fechaEntradaInput.addEventListener("change", onDateChange);
+      if (fechaSalidaInput)
+        fechaSalidaInput.addEventListener("change", onDateChange);
+
       // Manejar selección de tipo de habitación
       document.querySelectorAll('input[name="tipo"]').forEach((radio) => {
-        radio.addEventListener("change", async function () {
-          const tipoSeleccionado = this.value;
-          const roomNumberSection =
-            document.getElementById("roomNumberSection");
-          const numeroHabitacionSelect =
-            document.getElementById("numeroHabitacion");
-          const roomInfo = document.getElementById("roomInfo");
-
-          // Mostrar sección de número de habitación
-          roomNumberSection.style.display = "block";
-
-          // Deshabilitar el select mientras carga
-          numeroHabitacionSelect.disabled = true;
-          numeroHabitacionSelect.innerHTML =
-            '<option value="">Cargando habitaciones...</option>';
-          roomInfo.textContent = "";
-
-          try {
-            // Hacer petición AJAX para obtener habitaciones disponibles
-            const response = await fetch(
-              `/api/habitaciones/disponibles?tipo=${tipoSeleccionado}`
-            );
-
-            if (!response.ok) {
-              throw new Error("Error al cargar habitaciones");
-            }
-
-            const habitaciones = await response.json();
-
-            // Limpiar options
-            numeroHabitacionSelect.innerHTML =
-              '<option value="">Seleccione una habitación...</option>';
-
-            if (habitaciones.length === 0) {
-              numeroHabitacionSelect.innerHTML +=
-                '<option value="">No hay habitaciones disponibles de este tipo</option>';
-              roomInfo.textContent = "No hay habitaciones disponibles";
-              roomInfo.className = "text-xs text-red-400 ml-1";
-            } else {
-              habitaciones.forEach((hab) => {
-                const option = document.createElement("option");
-                option.value = hab.numero;
-                option.textContent = `Habitación ${hab.numero} - S/. ${hab.precioPorNoche}/noche`;
-                option.dataset.precio = hab.precioPorNoche;
-                numeroHabitacionSelect.appendChild(option);
-              });
-
-              roomInfo.textContent = `${habitaciones.length} habitación(es) disponible(s)`;
-              roomInfo.className = "text-xs text-primary ml-1";
-
-              // Habilitar el select
-              numeroHabitacionSelect.disabled = false;
-            }
-          } catch (error) {
-            console.error("Error:", error);
-            numeroHabitacionSelect.innerHTML =
-              '<option value="">Error al cargar habitaciones</option>';
-            roomInfo.textContent =
-              "Error al cargar habitaciones. Por favor intente nuevamente.";
-            roomInfo.className = "text-xs text-red-400 ml-1";
-          }
+        radio.addEventListener("change", function () {
+          cargarHabitaciones(this.value);
         });
       });
 

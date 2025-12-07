@@ -510,6 +510,7 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
+        // Input Formatting
         const cardInput = document.getElementById("card-number");
         if (cardInput) {
           cardInput.addEventListener("input", function (e) {
@@ -528,6 +529,67 @@
               value = value.substring(0, 2) + "/" + value.substring(2, 4);
             }
             e.target.value = value;
+          });
+        }
+
+        // Form Validation
+        const form = document.querySelector('form[action*="/pago"]');
+        if (form) {
+          form.addEventListener("submit", function (e) {
+            const metodoInput = form.querySelector('input[name="metodo"]');
+            // The hidden input value is updated by Alpine, but it might happen slightly after click if not bound directly.
+            // However, since it's x-model, it should be sync.
+            // Let's rely on the Alpine component state if possible, or just read the input which should be updated.
+            // Wait, x-model on a hidden input might not work as expected in all Alpine versions if it's not a standard input.
+            // But let's assume the value is correct or check the visible elements.
+
+            // Better approach: check which container is visible
+            const cardContainer = document.querySelector(
+              "[x-show=\"paymentMethod === 'card'\"]"
+            );
+            const isCardVisible =
+              cardContainer &&
+              window.getComputedStyle(cardContainer).display !== "none";
+
+            let isValid = true;
+            let errorMessage = "";
+
+            if (isCardVisible) {
+              const holder = document
+                .getElementById("card-holder")
+                .value.trim();
+              const number = document
+                .getElementById("card-number")
+                .value.trim();
+              const expiry = document
+                .getElementById("expiry-date")
+                .value.trim();
+              const cvv = document.getElementById("cvv").value.trim();
+
+              if (!holder || !number || !expiry || !cvv) {
+                isValid = false;
+                errorMessage =
+                  "Por favor, complete todos los datos de la tarjeta.";
+              } else if (number.replace(/\s/g, "").length < 16) {
+                isValid = false;
+                errorMessage = "El número de tarjeta debe tener 16 dígitos.";
+              }
+            } else {
+              // Wallet
+              const phone = document
+                .getElementById("phone-number")
+                .value.trim();
+              if (!phone) {
+                isValid = false;
+                errorMessage =
+                  "Por favor, ingrese el número de celular asociado a la billetera.";
+              }
+            }
+
+            if (!isValid) {
+              e.preventDefault();
+              alert(errorMessage);
+            }
           });
         }
       });

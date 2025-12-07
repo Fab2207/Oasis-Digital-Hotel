@@ -25,6 +25,18 @@ public class SecurityConfig {
         private final AuthenticationProvider authenticationProvider;
         private final RateLimitingFilter rateLimitingFilter;
         private final com.gestion.hotelera.security.JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
+
+        public SecurityConfig(
+                        AuthenticationProvider authenticationProvider,
+                        RateLimitingFilter rateLimitingFilter,
+                        com.gestion.hotelera.security.JwtAuthenticationFilter jwtAuthenticationFilter,
+                        org.springframework.security.core.userdetails.UserDetailsService userDetailsService) {
+                this.authenticationProvider = authenticationProvider;
+                this.rateLimitingFilter = rateLimitingFilter;
+                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+                this.userDetailsService = userDetailsService;
+        }
 
         @org.springframework.core.annotation.Order(1)
         @Bean
@@ -138,6 +150,11 @@ public class SecurityConfig {
                                                 .requestMatchers("/reservas/cancelar/**")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
 
+                                                // Descuentos en reservas (clientes pueden aplicar cupones)
+                                                .requestMatchers("/reservas/*/aplicar-descuento",
+                                                                "/reservas/*/quitar-descuento")
+                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
+
                                                 .requestMatchers("/reservas/**", "/recepcion/**")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
 
@@ -183,6 +200,12 @@ public class SecurityConfig {
                                                 .loginPage("/login")
                                                 .successHandler(roleBasedSuccessHandler())
                                                 .permitAll())
+                                .rememberMe(remember -> remember
+                                                .userDetailsService(this.userDetailsService)
+                                                .key("oasis-digital-secure")
+                                                .tokenValiditySeconds(604800) // 7 días
+                                                .alwaysRemember(true)) // Recordar siempre para evitar cierres por
+                                                                       // refresh
                                 .logout(logout -> logout
                                                 .logoutUrl("/logout")
                                                 .logoutSuccessUrl("/")
@@ -198,15 +221,6 @@ public class SecurityConfig {
                                                                 .maxAgeInSeconds(31536000)
                                                                 .includeSubDomains(true)))
                                 .build();
-        }
-
-        public SecurityConfig(
-                        AuthenticationProvider authenticationProvider,
-                        RateLimitingFilter rateLimitingFilter,
-                        com.gestion.hotelera.security.JwtAuthenticationFilter jwtAuthenticationFilter) {
-                this.authenticationProvider = authenticationProvider;
-                this.rateLimitingFilter = rateLimitingFilter;
-                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         }
 
         private CorsConfigurationSource corsConfigurationSource() {

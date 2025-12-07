@@ -79,40 +79,19 @@
                           class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
                         >
                           <span class="material-symbols-outlined text-lg"
-                            >tag</span
-                          >
-                        </span>
-                        <input
-                          th:field="*{numero}"
-                          class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
-                          placeholder="Ej: 301"
-                          type="text"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div class="space-y-1.5">
-                      <label
-                        class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
-                        >Tipo de Habitación</label
-                      >
-                      <div class="relative">
-                        <span
-                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
-                        >
-                          <span class="material-symbols-outlined text-lg"
                             >category</span
                           >
                         </span>
                         <select
+                          id="form-tipo"
                           th:field="*{tipo}"
                           class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300 [&>option]:bg-[#121212]"
                           required
                         >
-                          <option value="SIMPLE">Simple</option>
-                          <option value="DOBLE">Doble</option>
-                          <option value="SUITE">Suite</option>
-                          <option value="PRESIDENCIAL">Presidencial</option>
+                          <option value="Simple">Simple</option>
+                          <option value="Doble">Doble</option>
+                          <option value="Suite Junior">Suite Junior</option>
+                          <option value="Suite Familiar">Suite Familiar</option>
                         </select>
                       </div>
                     </div>
@@ -174,26 +153,6 @@
                         >
                         <div class="relative">
                           <span
-                            class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none font-bold"
-                            >S/.</span
-                          >
-                          <input
-                            th:field="*{precioPorNoche}"
-                            class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/20 border border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
-                            placeholder="150.00"
-                            type="number"
-                            step="0.01"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div class="space-y-1.5">
-                        <label
-                          class="text-xs font-bold text-white/60 uppercase tracking-wider ml-1"
-                          >Estado</label
-                        >
-                        <div class="relative">
-                          <span
                             class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none"
                           >
                             <span class="material-symbols-outlined text-lg"
@@ -240,5 +199,34 @@
         </main>
       </div>
     </div>
+    <script>
+      const precios = {
+        Simple: 50.0,
+        Doble: 80.0,
+        "Suite Junior": 120.0,
+        "Suite Familiar": 150.0,
+      };
+
+      const tipoSelect = document.getElementById("form-tipo");
+      const precioInput = document.getElementById("form-precio");
+
+      if (tipoSelect && precioInput) {
+        tipoSelect.addEventListener("change", function () {
+          const tipo = this.value;
+          if (precios[tipo]) {
+            precioInput.value = precios[tipo];
+          }
+        });
+
+        // Set initial price if creating new (empty id) or verify on load
+        // Assuming if field is empty or user wants to enforce standard pricing
+        if (!precioInput.value) {
+          const tipo = tipoSelect.value;
+          if (precios[tipo]) {
+            precioInput.value = precios[tipo];
+          }
+        }
+      }
+    </script>
   </body>
 </html>

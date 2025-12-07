@@ -306,11 +306,8 @@
                       >
                         <option value="Simple">Simple</option>
                         <option value="Doble">Doble</option>
-                        <option value="Matrimonial">Matrimonial</option>
                         <option value="Suite Junior">Suite Junior</option>
-                        <option value="Suite Presidencial">
-                          Suite Presidencial
-                        </option>
+                        <option value="Suite Familiar">Suite Familiar</option>
                       </select>
                     </div>
 
@@ -339,11 +336,10 @@
                         >Precio por Noche</label
                       >
                       <div class="relative">
-                        <div
-                          class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                        <span
+                          class="absolute inset-y-0 left-0 flex items-center pl-3 text-white/40 pointer-events-none font-bold"
+                          >S/.</span
                         >
-                          <span class="text-white/40">$</span>
-                        </div>
                         <input
                           class="w-full rounded-lg bg-black/20 border border-white/10 pl-7 pr-3 text-white placeholder:text-white/20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-black/40 transition-all duration-300"
                           id="room-price"
@@ -356,9 +352,7 @@
                       </div>
                     </div>
 
-                    <div
-                      class="flex items-center justify-between pt-4 border-t border-white/5 mt-6"
-                    >
+                    <div class="flex justify-end gap-3 pt-4">
                       <button
                         onclick="limpiarFormulario()"
                         class="text-sm font-medium text-red-400 hover:text-red-300 transition-colors px-3 py-2 rounded-lg hover:bg-red-500/10"
@@ -390,6 +384,9 @@
         document.getElementById("room-status").value = estado;
         document.getElementById("room-price").value = precio;
 
+        // Remove readonly in edit mode
+        document.getElementById("room-price").removeAttribute("readonly");
+
         document.getElementById("form-title").innerText =
           "Editar Habitación " + numero;
         document.getElementById("form-subtitle").innerText =
@@ -405,12 +402,51 @@
         document.getElementById("room-number").value = "";
         document.getElementById("room-type").selectedIndex = 0;
         document.getElementById("room-status").selectedIndex = 0;
-        document.getElementById("room-price").value = "";
+        // Set default price for the first option (Simple)
+        document.getElementById("room-price").value = "50.0";
+
+        // Add readonly in create mode
+        document
+          .getElementById("room-price")
+          .setAttribute("readonly", "readonly");
 
         document.getElementById("form-title").innerText = "Nueva Habitación";
         document.getElementById("form-subtitle").innerText =
           "Ingresa los detalles de la nueva habitación.";
       }
+
+      // Precios estándar según base de datos
+      const preciosPorTipo = {
+        Simple: 50.0,
+        Doble: 80.0,
+        "Suite Junior": 120.0,
+        "Suite Familiar": 150.0,
+      };
+
+      document
+        .getElementById("room-type")
+        .addEventListener("change", function () {
+          const tipoSeleccionado = this.value;
+          if (preciosPorTipo[tipoSeleccionado]) {
+            document.getElementById("room-price").value =
+              preciosPorTipo[tipoSeleccionado];
+          }
+        });
+
+      // Inicializar precio al cargar si es nuevo
+      document.addEventListener("DOMContentLoaded", function () {
+        if (!document.getElementById("room-id").value) {
+          // New room mode by default
+          document
+            .getElementById("room-price")
+            .setAttribute("readonly", "readonly");
+
+          const tipo = document.getElementById("room-type").value;
+          if (preciosPorTipo[tipo]) {
+            document.getElementById("room-price").value = preciosPorTipo[tipo];
+          }
+        }
+      });
     </script>
   </body>
 </html>

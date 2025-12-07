@@ -41,6 +41,9 @@ public class HabitacionController {
             org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page,
                     size, sort);
 
+            // Actualizar estados antes de listar para reflejar disponibilidad REAL de hoy
+            habitacionService.actualizarEstadosHabitacionesHoy();
+
             org.springframework.data.domain.Page<Habitacion> habitacionesPage = habitacionService
                     .obtenerHabitacionesPaginadas(pageable, search);
 
@@ -113,5 +116,14 @@ public class HabitacionController {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar la habitación");
         }
         return "redirect:/habitaciones";
+    }
+
+    // Endpoint API para obtener habitaciones disponibles por rango de fechas (AJAX)
+    @GetMapping("/api/disponibles")
+    @ResponseBody
+    public java.util.List<Habitacion> obtenerHabitacionesDisponibles(
+            @RequestParam("inicio") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate inicio,
+            @RequestParam("fin") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fin) {
+        return habitacionService.buscarDisponibles(inicio, fin);
     }
 }

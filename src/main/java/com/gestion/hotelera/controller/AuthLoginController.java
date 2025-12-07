@@ -186,11 +186,11 @@ public class AuthLoginController {
 
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/login?register=true&error=true";
+            return "redirect:/login?register=true&registerError=true";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Error al registrar: " + e.getMessage());
-            return "redirect:/login?register=true&error=true";
+            return "redirect:/login?register=true&registerError=true";
         }
     }
 

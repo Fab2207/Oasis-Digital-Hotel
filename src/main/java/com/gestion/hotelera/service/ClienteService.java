@@ -60,8 +60,19 @@ public class ClienteService {
         validarDniUnico(cliente.getDni(), null);
         validarEmailUnico(cliente.getEmail(), null);
 
+        // Verificar si se enviaron datos de usuario válidos
         if (cliente.getUsuario() != null) {
-            procesarUsuarioCliente(cliente);
+            String username = cliente.getUsuario().getUsername();
+            String password = cliente.getUsuario().getPassword();
+
+            // Si el nombre de usuario o contraseña están vacíos, asumimos que no se quiere
+            // crear cuenta
+            if ((username == null || username.trim().isEmpty()) && (password == null || password.trim().isEmpty())) {
+                cliente.setUsuario(null);
+            } else {
+                // Si hay datos, validamos y procesamos
+                procesarUsuarioCliente(cliente);
+            }
         }
 
         Cliente nuevoCliente = clienteRepository.save(cliente);

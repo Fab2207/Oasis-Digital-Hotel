@@ -74,6 +74,15 @@ public class ReservaController {
             reservas = reservaService.obtenerTodasLasReservas();
         }
 
+        if (reservas.isEmpty() && search != null && !search.isEmpty()) {
+            // Si no hay reservas pero se buscó algo, verificar si es un cliente existente
+            // por DNI
+            Optional<Cliente> clienteOpt = clienteService.buscarClientePorDni(search);
+            if (clienteOpt.isPresent()) {
+                model.addAttribute("clienteSinReservas", clienteOpt.get());
+            }
+        }
+
         if (estados != null && !estados.isEmpty()) {
             reservas = reservas.stream()
                     .filter(r -> estados.contains(r.getEstadoReserva()))

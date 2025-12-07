@@ -70,13 +70,20 @@ public class DashboardController {
                 long totalHabitaciones = habitacionService.contarHabitaciones();
                 long totalClientes = clienteService.contarClientes();
                 long totalReservas = reservaService.contarReservas();
-                long habitacionesDisponibles = habitacionService.contarDisponibles();
-                long habitacionesOcupadas = habitacionService.contarOcupadas();
                 long habitacionesMantenimiento = habitacionService.contarEnMantenimiento();
+
+                // Nueva lógica: Ocupadas son aquellas con reserva ACTIVA o PENDIENTE (futura)
+                long habitacionesOcupadas = reservaService.contarHabitacionesReservadas();
+
+                // Disponibles son Total - Ocupadas(Reservadas) - Mantenimiento
+                long habitacionesDisponibles = Math.max(0,
+                        totalHabitaciones - habitacionesOcupadas - habitacionesMantenimiento);
+
                 // totalEmpleados removido ya que EmpleadoService no existe
                 double ingresosTotales = reservaService.calcularIngresosTotales();
                 long reservasPendientes = reservaService.contarReservasPorEstado("PENDIENTE");
                 long reservasActivas = reservaService.contarReservasPorEstado("ACTIVA");
+                // Check-Ins y Check-Outs ahora traen "Pendientes Total" (no solo hoy)
                 long checkInsHoy = reservaService.contarCheckInsHoy();
                 long checkOutsHoy = reservaService.contarCheckOutsHoy();
                 var ingresosUltimos30Dias = reservaService.getIngresosUltimosDias(30);
@@ -93,8 +100,8 @@ public class DashboardController {
                 model.addAttribute("ingresosUltimos30Dias", ingresosUltimos30Dias);
                 model.addAttribute("checkInsHoy", checkInsHoy);
                 model.addAttribute("checkOutsHoy", checkOutsHoy);
-                model.addAttribute("checkInsHoy", checkInsHoy);
-                model.addAttribute("checkOutsHoy", checkOutsHoy);
+                // Removed duplicate keys checkInsHoy/checkOutsHoy from original
+
                 model.addAttribute("ultimasReservas", reservaService.obtenerUltimasReservas(5));
                 model.addAttribute("ingresosUltimos30Dias", reservaService.getIngresosUltimosDias(30));
 

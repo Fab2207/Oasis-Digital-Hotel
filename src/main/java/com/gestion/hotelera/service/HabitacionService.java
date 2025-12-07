@@ -186,6 +186,23 @@ public class HabitacionService {
         }
 
         Habitacion actualizada = habitacionRepository.save(habitacion);
+
+        // Actualizar precio de TODAS las habitaciones del mismo tipo si el precio
+        // cambió
+        if (existente.get().getPrecioPorNoche() != null
+                && !existente.get().getPrecioPorNoche().equals(habitacion.getPrecioPorNoche())) {
+            List<Habitacion> habitacionesMismoTipo = habitacionRepository.findAll().stream()
+                    .filter(h -> h.getTipo().equals(habitacion.getTipo()) && !h.getId().equals(habitacion.getId()))
+                    .collect(Collectors.toList());
+
+            for (Habitacion h : habitacionesMismoTipo) {
+                h.setPrecioPorNoche(habitacion.getPrecioPorNoche());
+                habitacionRepository.save(h);
+            }
+            logger.info("Precio actualizado para {} habitaciones de tipo {}", habitacionesMismoTipo.size(),
+                    habitacion.getTipo());
+        }
+
         auditoriaService.registrarAccion("ACTUALIZACION_HABITACION",
                 "Habitación actualizada: " + actualizada.getNumero(), "Habitacion", actualizada.getId());
         return actualizada;
@@ -224,5 +241,34 @@ public class HabitacionService {
         return habitacionRepository.findAll().stream()
                 .filter(h -> "DISPONIBLE".equals(h.getEstado()))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void actualizarEstadosHabitacionesHoy() {
+        LocalDate hoy = LocalDate.now();
+        List<Habitacion> habitaciones = habitacionRepository.findAll();
+
+        for (Habitacion habitacion : habitaciones) {
+            // No tocar habitaciones en mantenimiento
+            if ("MANTENIMIENTO".equalsIgnoreCase(habitacion.getEstado())) {
+                continue;
+            }
+
+            boolean estaOcupadaHoy = reservaRepository.findAll().stream()
+                    .anyMatch(r -> r.getHabitacion() != null
+                            && r.getHabitacion().getId().equals(habitacion.getId())
+                            && ("ACTIVA".equalsIgnoreCase(r.getEstadoReserva())
+                                    || "PENDIENTE".equalsIgnoreCase(r.getEstadoReserva()))
+                            && (!hoy.isBefore(r.getFechaInicio()) && !hoy.isAfter(r.getFechaFin())));
+
+            String estadoEsperado = estaOcupadaHoy ? "OCUPADA" : "DISPONIBLE";
+
+            if (!estadoEsperado.equalsIgnoreCase(habitacion.getEstado())) {
+                habitacion.setEstado(estadoEsperado);
+                habitacionRepository.save(habitacion);
+                logger.info("Estado de habitación {} actualizado automáticamente a {}", habitacion.getNumero(),
+                        estadoEsperado);
+            }
+        }
     }
 }

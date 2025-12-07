@@ -253,12 +253,18 @@ public class ReservaService {
     @Transactional(readOnly = true)
     public double calcularIngresosTotales() {
         List<Reserva> reservas = reservaRepository.findAll();
+        // Sumar Total Base + Servicios - Descuentos para reservas válidas
         return reservas.stream()
                 .filter(r -> EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
                         EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
                         (EstadoReserva.PENDIENTE.getValor().equalsIgnoreCase(r.getEstadoReserva())
                                 && r.getPago() != null && "COMPLETADO".equalsIgnoreCase(r.getPago().getEstado())))
-                .mapToDouble(Reserva::getTotalPagar)
+                .mapToDouble(r -> {
+                    double base = r.getTotalPagar() != null ? r.getTotalPagar() : 0.0;
+                    double servicios = r.calcularTotalServicios();
+                    double descuento = r.getMontoDescuento() != null ? r.getMontoDescuento() : 0.0;
+                    return Math.max(0, base + servicios - descuento);
+                })
                 .sum();
     }
 
@@ -276,7 +282,13 @@ public class ReservaService {
         reservas.stream()
                 .filter(r -> r.getFechaSalidaReal() != null)
                 .filter(r -> !r.getFechaSalidaReal().isBefore(inicio) && !r.getFechaSalidaReal().isAfter(fin))
-                .forEach(r -> ingresosPorFecha.merge(r.getFechaSalidaReal(), r.getTotalPagar(), Double::sum));
+                .forEach(r -> {
+                    double base = r.getTotalPagar() != null ? r.getTotalPagar() : 0.0;
+                    double servicios = r.calcularTotalServicios();
+                    double descuento = r.getMontoDescuento() != null ? r.getMontoDescuento() : 0.0;
+                    double total = Math.max(0, base + servicios - descuento);
+                    ingresosPorFecha.merge(r.getFechaSalidaReal(), total, Double::sum);
+                });
 
         return ingresosPorFecha.entrySet().stream()
                 .map(e -> {
@@ -327,24 +339,31 @@ public class ReservaService {
         return reservaRepository.countByEstadoReservaIgnoreCase(estado);
     }
 
+    // Contar check-ins pendientes (reservas confirmadas que faltan entrar)
     @Transactional(readOnly = true)
     public long contarCheckInsHoy() {
-        LocalDate hoy = LocalDate.now();
         return reservaRepository.findAll().stream()
-                .filter(r -> (r.getFechaCheckinReal() != null && hoy.equals(r.getFechaCheckinReal())) ||
-                        (hoy.equals(r.getFechaInicio())
-                                && (EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva())
-                                        || EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva()))))
+                .filter(r -> EstadoReserva.PENDIENTE.getValor().equalsIgnoreCase(r.getEstadoReserva()))
                 .count();
     }
 
+    // Contar check-outs pendientes (gente que está dentro y falta salir)
     @Transactional(readOnly = true)
     public long contarCheckOutsHoy() {
-        LocalDate hoy = LocalDate.now();
         return reservaRepository.findAll().stream()
-                .filter(r -> (r.getFechaSalidaReal() != null && hoy.equals(r.getFechaSalidaReal())) ||
-                        (hoy.equals(r.getFechaFin())
-                                && EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva())))
+                .filter(r -> EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()))
+                .count();
+    }
+
+    // Nueva lógica: Contar habitaciones únicas que tienen alguna reserva activa o
+    // futura (Pendiente/Activa)
+    @Transactional(readOnly = true)
+    public long contarHabitacionesReservadas() {
+        return reservaRepository.findAll().stream()
+                .filter(r -> EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
+                        EstadoReserva.PENDIENTE.getValor().equalsIgnoreCase(r.getEstadoReserva()))
+                .map(r -> r.getHabitacion().getId())
+                .distinct()
                 .count();
     }
 

@@ -26,14 +26,7 @@
                     Administra las reservas, check-ins y check-outs del hotel.
                   </p>
                 </div>
-                <a
-                  sec:authorize="!hasRole('ROLE_ADMIN')"
-                  th:href="@{/reservas/crear}"
-                  class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/20 hover:scale-105"
-                >
-                  <span class="material-symbols-outlined">add</span>
-                  Nueva Reserva
-                </a>
+                <!-- Button removed as per admin restriction -->
             </div>
 
             <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -235,6 +228,41 @@
             </div>
           </div>
         </main>
+    </div>
+
+    <!-- Client Found Modal -->
+    <div th:if="${clienteSinReservas != null}" id="clientFoundModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+        <div class="bg-[#1A1A1A] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl relative animate-scale-in">
+            <button onclick="document.getElementById('clientFoundModal').remove()" class="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            
+            <div class="flex flex-col items-center text-center gap-4">
+                <div class="size-16 rounded-full bg-primary/20 text-primary flex items-center justify-center shadow-lg shadow-primary/10">
+                    <span class="material-symbols-outlined text-3xl">person_check</span>
+                </div>
+                
+                <div class="space-y-2">
+                    <h3 class="text-xl font-bold text-white">Cliente Encontrado</h3>
+                    <p class="text-white/60">
+                        El cliente <strong class="text-white" th:text="${clienteSinReservas.nombres + ' ' + clienteSinReservas.apellidos}"></strong> con DNI <span class="font-mono text-white/80" th:text="${clienteSinReservas.dni}"></span> se encuentra registrado en el sistema.
+                    </p>
+                    <div class="p-3 bg-white/5 rounded-lg border border-white/5 text-sm text-yellow-400/80 mt-2">
+                        <span class="flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg">info</span>
+                            No tiene reservas activas actualmente.
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 w-full mt-4">
+                    <button onclick="document.getElementById('clientFoundModal').remove()" class="flex-1 py-2.5 rounded-lg border border-white/10 text-white font-medium hover:bg-white/5 transition-colors">
+                        Cerrar
+                    </button>
+                    <!-- Opcional: Link a perfil o crear reserva si se implementa -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>

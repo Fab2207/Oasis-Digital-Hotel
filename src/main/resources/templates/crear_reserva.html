@@ -391,6 +391,74 @@
       </div>
     </div>
     <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const fechaInicioInput = document.getElementById("fechaInicio"); // Ensure ID exists
+        const fechaFinInput = document.getElementById("fechaFin"); // Ensure ID exists
+        const habitacionSelect = document.querySelector(
+          'select[name="habitacionId"]'
+        );
+
+        // Add IDs to inputs if they don't have them
+        const dateInputs = document.querySelectorAll('input[type="date"]');
+        if (dateInputs.length >= 2) {
+          if (!dateInputs[0].id) dateInputs[0].id = "fechaInicio";
+          if (!dateInputs[1].id) dateInputs[1].id = "fechaFin";
+        }
+
+        async function actualizarHabitacionesDisponibles() {
+          const inicio = document.getElementById("fechaInicio").value;
+          const fin = document.getElementById("fechaFin").value;
+
+          if (inicio && fin) {
+            try {
+              // Show loading state
+              habitacionSelect.innerHTML =
+                '<option value="">Buscando habitaciones...</option>';
+              habitacionSelect.disabled = true;
+
+              const response = await fetch(
+                `/habitaciones/api/disponibles?inicio=${inicio}&fin=${fin}`
+              );
+              if (response.ok) {
+                const habitaciones = await response.json();
+
+                habitacionSelect.innerHTML =
+                  '<option value="">Seleccione una habitación...</option>';
+
+                if (habitaciones.length === 0) {
+                  habitacionSelect.innerHTML +=
+                    '<option value="" disabled>No hay habitaciones disponibles para estas fechas</option>';
+                } else {
+                  habitaciones.forEach((hab) => {
+                    const option = document.createElement("option");
+                    option.value = hab.id;
+                    option.textContent = `Hab. ${hab.numero} - ${hab.tipo} (S/. ${hab.precioPorNoche})`;
+                    habitacionSelect.appendChild(option);
+                  });
+                }
+              } else {
+                console.error("Error fetching rooms");
+                habitacionSelect.innerHTML =
+                  '<option value="">Error al cargar habitaciones</option>';
+              }
+            } catch (e) {
+              console.error(e);
+              habitacionSelect.innerHTML =
+                '<option value="">Error de conexión</option>';
+            } finally {
+              habitacionSelect.disabled = false;
+            }
+          }
+        }
+
+        document
+          .getElementById("fechaInicio")
+          .addEventListener("change", actualizarHabitacionesDisponibles);
+        document
+          .getElementById("fechaFin")
+          .addEventListener("change", actualizarHabitacionesDisponibles);
+      });
+
       async function buscarCliente() {
         const dniInput = document.getElementById("dniBuscarInput");
         const dni = dniInput.value;
