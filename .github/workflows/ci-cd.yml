@@ -23,14 +23,10 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
-    # Opcional: Ejecutar tests si existen y son estables
-    # - name: Run Tests
-    #   run: mvn test
-
   docker-push:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' # Solo correr en push a main, no en PRs
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
@@ -49,4 +45,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/sistema-hotelero:latest,${{ secrets.DOCKERHUB_USERNAME }}/sistema-hotelero:${{ github.sha }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/sistema-hotelero:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/sistema-hotelero:${{ github.sha }}
