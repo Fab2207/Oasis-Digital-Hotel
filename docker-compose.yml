@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: oasis-hotel-app
+    ports:
+      - "8084:8084"
+    depends_on:
+      - db
+    environment:
+      - SERVER_PORT=8084
+      # Sobreescribimos la conexión a BD definida en application.properties
+      # 'db' es el nombre del servicio definido abajo
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/oasis_digital_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=admin
+      # Esperar a que la BD esté lista antes de arrancar totalmente (reintentos simples de Spring Boot)
+
+    networks:
+      - hotel-network
+    restart: always
+
+  db:
+    image: mysql:8.0
+    container_name: oasis-hotel-db
+    ports:
+      - "3307:3306" # Mapeamos al 3307 en el host para evitar conflictos si tienes un MySQL local en el 3306
+    environment:
+      - MYSQL_DATABASE=oasis_digital_db
+      - MYSQL_ROOT_PASSWORD=admin
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - hotel-network
+    restart: always
+
+networks:
+  hotel-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
