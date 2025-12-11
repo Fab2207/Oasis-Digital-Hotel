@@ -13,14 +13,8 @@ public class Auditoria {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    // Relación con Empleado comentada ya que la clase no existe
-    // Se usa el username del usuario autenticado en su lugar
     @Column(length = 50)
     private String usuarioUsername;
-    
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "empleado_id")
-    // private Empleado empleado;
 
     @Column(nullable = false, length = 100)
     private String tipoAccion;
@@ -44,8 +38,7 @@ public class Auditoria {
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
     public String getUsuarioUsername() { return usuarioUsername; }
     public void setUsuarioUsername(String usuarioUsername) { this.usuarioUsername = usuarioUsername; }
-    // public Empleado getEmpleado() { return empleado; }
-    // public void setEmpleado(Empleado empleado) { this.empleado = empleado; }
+
     public String getTipoAccion() { return tipoAccion; }
     public void setTipoAccion(String tipoAccion) { this.tipoAccion = tipoAccion; }
     public String getDetalleAccion() { return detalleAccion; }

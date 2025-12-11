@@ -10,23 +10,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/**
- * Configuración para inicializar datos por defecto en la base de datos
- * Esta clase se ejecuta automáticamente al iniciar la aplicación
- */
 @Configuration
 public class DataInitializer {
 
-        /**
-         * Inicializa datos por defecto: Usuarios, Habitaciones y Servicios
-         */
         @Bean
         CommandLineRunner initDatabase(ServicioRepository servicioRepository, UsuarioRepository usuarioRepository,
                         com.gestion.hotelera.repository.HabitacionRepository habitacionRepository,
                         PasswordEncoder passwordEncoder,
                         AuditoriaService auditoriaService) {
                 return args -> {
-                        // Inicializar Usuarios
+                        
                         crearUsuarioSiNoExiste(usuarioRepository, passwordEncoder, "admin", "admin123", "ROLE_ADMIN",
                                         auditoriaService);
                         crearUsuarioSiNoExiste(usuarioRepository, passwordEncoder, "recep", "recep123",
@@ -34,32 +27,26 @@ public class DataInitializer {
                         crearUsuarioSiNoExiste(usuarioRepository, passwordEncoder, "cliente", "cliente123",
                                         "ROLE_CLIENTE", auditoriaService);
 
-                        // Inicializar Habitaciones (10 por defecto)
                         if (habitacionRepository.count() == 0) {
                                 System.out.println("🛏️ Inicializando habitaciones...");
 
-                                // 3 Habitaciones Simples (S/. 50.0)
                                 crearHabitacion(habitacionRepository, "101", "Simple", 50.0, auditoriaService);
                                 crearHabitacion(habitacionRepository, "102", "Simple", 50.0, auditoriaService);
                                 crearHabitacion(habitacionRepository, "103", "Simple", 50.0, auditoriaService);
 
-                                // 3 Habitaciones Dobles (S/. 80.0)
                                 crearHabitacion(habitacionRepository, "201", "Doble", 80.0, auditoriaService);
                                 crearHabitacion(habitacionRepository, "202", "Doble", 80.0, auditoriaService);
                                 crearHabitacion(habitacionRepository, "203", "Doble", 80.0, auditoriaService);
 
-                                // 2 Suites Junior (S/. 120.0)
                                 crearHabitacion(habitacionRepository, "301", "Suite Junior", 120.0, auditoriaService);
                                 crearHabitacion(habitacionRepository, "302", "Suite Junior", 120.0, auditoriaService);
 
-                                // 2 Suites Familiares (S/. 150.0)
                                 crearHabitacion(habitacionRepository, "401", "Suite Familiar", 150.0, auditoriaService);
                                 crearHabitacion(habitacionRepository, "402", "Suite Familiar", 150.0, auditoriaService);
 
                                 System.out.println("✅ 10 habitaciones creadas exitosamente");
                         }
 
-                        // Inicializar Servicios (9 por defecto) - Verificando uno por uno
                         System.out.println("📦 Verificando servicios del hotel...");
 
                         crearServicioSiNoExiste(servicioRepository, "Spa y Masajes",
@@ -129,8 +116,7 @@ public class DataInitializer {
 
         private void crearServicioSiNoExiste(ServicioRepository repo, String nombre, String descripcion,
                         Double precio, AuditoriaService auditoriaService) {
-                // Verificamos si existe alguno con ese nombre iterando (solución temporal sin
-                // modificar repositorio)
+
                 boolean existe = repo.findAll().stream().anyMatch(s -> s.getNombre().equals(nombre));
                 if (!existe) {
                         Servicio s = new Servicio();

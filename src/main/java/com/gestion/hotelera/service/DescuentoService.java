@@ -19,7 +19,7 @@ import java.util.Optional;
 public class DescuentoService {
 
     private static final Logger logger = LoggerFactory.getLogger(DescuentoService.class);
-    // Re-validated by system
+    
     private final DescuentoRepository descuentoRepository;
 
     public DescuentoService(DescuentoRepository descuentoRepository) {
@@ -46,7 +46,6 @@ public class DescuentoService {
         Descuento existente = descuentoRepository.findById(descuento.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Descuento no encontrado"));
 
-        // Verificar código único si cambió
         if (!existente.getCodigo().equalsIgnoreCase(descuento.getCodigo())) {
             validarCodigoUnico(descuento.getCodigo(), existente.getId());
         }
@@ -84,7 +83,6 @@ public class DescuentoService {
             return Optional.empty();
         }
 
-        // Verificar monto mínimo
         if (descuento.getMontoMinimo() != null && montoBase < descuento.getMontoMinimo()) {
             logger.debug("Monto base ({}) menor al mínimo requerido ({})", montoBase, descuento.getMontoMinimo());
             return Optional.empty();
@@ -132,8 +130,6 @@ public class DescuentoService {
         }
         return descuentoRepository.findAll(pageable);
     }
-
-    // ============== MÉTODOS PRIVADOS DE AYUDA ==============
 
     private void validarDescuento(Descuento descuento) {
         if (descuento == null) {

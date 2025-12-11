@@ -133,9 +133,6 @@ public class EmailService {
         }
     }
 
-    /**
-     * Envía un email de bienvenida cuando un cliente se registra en el sistema
-     */
     public void enviarEmailBienvenida(String toEmail, String nombreCliente, String username) {
         if (!emailEnabled) {
             log.info("Email deshabilitado. No se envió bienvenida a: {}", toEmail);
@@ -170,9 +167,6 @@ public class EmailService {
         }
     }
 
-    /**
-     * Envía un recordatorio 24 horas antes del check-in
-     */
     public void enviarRecordatorioCheckIn(String toEmail, String nombreCliente, String numeroReserva,
             String fechaCheckIn, String habitacion) {
         if (!emailEnabled) {
@@ -208,9 +202,6 @@ public class EmailService {
         }
     }
 
-    /**
-     * Envía una encuesta de satisfacción después del check-out
-     */
     public void enviarEncuestaPostEstadia(String toEmail, String nombreCliente, String numeroReserva,
             String fechaCheckOut) {
         if (!emailEnabled) {
@@ -248,9 +239,6 @@ public class EmailService {
         }
     }
 
-    /**
-     * Envía un email genérico
-     */
     public void enviarEmail(String toEmail, String subject, String content) {
         if (!emailEnabled) {
             log.info("Email deshabilitado. No se envió email genérico a: {}", toEmail);

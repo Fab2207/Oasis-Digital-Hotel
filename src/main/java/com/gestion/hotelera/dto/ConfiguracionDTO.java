@@ -11,7 +11,7 @@ public class ConfiguracionDTO {
     private String moneda;
 
     public ConfiguracionDTO() {
-        // Valores por defecto
+        
         this.nombreHotel = "Oasis Digital Resort";
         this.emailContacto = "contacto@oasisdigital.com";
         this.direccion = "Av. del Sol 123, Cancún, México";

@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
             ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
-        ex.printStackTrace(); // Log para servidor
+        ex.printStackTrace(); 
         redirectAttributes.addFlashAttribute("errorMessage", "Ha ocurrido un error inesperado: " + ex.getMessage());
         return "redirect:" + obtenerReferer(request);
     }

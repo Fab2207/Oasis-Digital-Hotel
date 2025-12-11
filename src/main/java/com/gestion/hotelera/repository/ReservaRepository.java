@@ -40,10 +40,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     @Query("SELECT DISTINCT r.habitacion.id FROM Reserva r WHERE r.cliente.id = :clienteId AND r.estadoReserva IN ('PENDIENTE', 'ACTIVA')")
     List<Long> findHabitacionesReservadasPorCliente(@Param("clienteId") Long clienteId);
 
-    /**
-     * Verifica si existe una reserva activa o pendiente para una habitación en un rango de fechas
-     * Excluye la reserva actual si se está actualizando (reservaId != null)
-     */
     @Query("SELECT COUNT(r) > 0 FROM Reserva r WHERE r.habitacion.id = :habitacionId " +
             "AND r.estadoReserva IN ('PENDIENTE', 'ACTIVA') " +
             "AND (:fechaInicio < r.fechaFin AND :fechaFin > r.fechaInicio) " +
@@ -53,9 +49,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
                                        @Param("fechaFin") LocalDate fechaFin,
                                        @Param("reservaId") Long reservaId);
 
-    /**
-     * Encuentra todas las reservas activas o pendientes que están dentro de un rango de fechas
-     */
     @Query("SELECT r FROM Reserva r WHERE r.habitacion.id = :habitacionId " +
             "AND r.estadoReserva IN ('PENDIENTE', 'ACTIVA') " +
             "AND (:fechaInicio < r.fechaFin AND :fechaFin > r.fechaInicio) " +

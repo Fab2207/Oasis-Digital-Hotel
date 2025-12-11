@@ -6,9 +6,6 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
-/**
- * Health check personalizado para verificar la conexión al servidor de email
- */
 @Component
 public class EmailHealthIndicator implements HealthIndicator {
 
@@ -30,7 +27,7 @@ public class EmailHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
         try {
-            // Si el email está deshabilitado, reportar como UNKNOWN
+            
             if (!emailEnabled) {
                 return Health.unknown()
                         .withDetail("status", "disabled")
@@ -40,9 +37,8 @@ public class EmailHealthIndicator implements HealthIndicator {
                         .build();
             }
 
-            // Intentar verificar la conexión al servidor SMTP
             try {
-                // Esto verifica que el mailSender esté configurado correctamente
+                
                 mailSender.createMimeMessage();
 
                 return Health.up()

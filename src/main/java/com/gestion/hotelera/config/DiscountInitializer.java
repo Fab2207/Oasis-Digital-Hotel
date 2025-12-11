@@ -16,27 +16,35 @@ public class DiscountInitializer {
         return args -> {
             System.out.println("🏷️ Verificando descuentos (DiscountInitializer)...");
             crearDescuentoSiNoExiste(descuentoRepository, "VERANO2025", "PORCENTAJE", 20.0, 100);
-            crearDescuentoSiNoExiste(descuentoRepository, "BIENVENIDA", "FIJO", 50.0, 50);
+            crearDescuentoSiNoExiste(descuentoRepository, "BIENVENIDA", "MONTO_FIJO", 50.0, 50);
             System.out.println("✅ Descuentos verificados");
         };
     }
 
     private void crearDescuentoSiNoExiste(DescuentoRepository repo, String codigo, String tipo, Double valor,
             Integer usosMax) {
-        if (repo.findByCodigo(codigo).isEmpty()) {
-            Descuento d = new Descuento();
+        Descuento d = repo.findByCodigo(codigo).orElse(new Descuento());
+
+        if (d.getId() == null || !d.getTipo().equals(tipo) || !d.getValor().equals(valor)) {
             d.setCodigo(codigo);
             d.setTipo(tipo);
             d.setValor(valor);
             d.setUsosMaximos(usosMax);
-            d.setUsosActuales(0);
-            d.setActivo(true);
-            d.setDescripcion("Descuento promocional " + codigo);
-            d.setFechaInicio(LocalDate.now());
-            // Fecha fin en 1 año
-            d.setFechaFin(LocalDate.now().plusYears(1));
+            if (d.getUsosActuales() == null)
+                d.setUsosActuales(0);
+            if (d.getActivo() == null)
+                d.setActivo(true);
+
+            if (d.getDescripcion() == null)
+                d.setDescripcion("Descuento promocional " + codigo);
+
+            if (d.getFechaInicio() == null)
+                d.setFechaInicio(LocalDate.now());
+            if (d.getFechaFin() == null)
+                d.setFechaFin(LocalDate.now().plusYears(1));
+
             repo.save(d);
-            System.out.println("🏷️ Descuento creado: " + codigo);
+            System.out.println("🏷️ Descuento actualizado/creado: " + codigo + " (" + tipo + ")");
         }
     }
 }

@@ -34,7 +34,6 @@ public class Usuario implements UserDetails {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    // Relación con Empleado
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private Empleado empleado;
@@ -70,8 +69,7 @@ public class Usuario implements UserDetails {
                         || username.contains("\"") || username.contains(";") || username.contains("--"))) {
             throw new IllegalArgumentException("El nombre de usuario contiene caracteres no permitidos");
         }
-        // Allow empty username (it will be handled by logic to ignore the user
-        // creation)
+
         this.username = username != null ? username.trim() : null;
     }
 
@@ -116,6 +114,7 @@ public class Usuario implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(rol));
     }

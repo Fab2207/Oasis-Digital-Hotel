@@ -17,14 +17,30 @@ public class ResenaService {
     private static final Logger logger = LoggerFactory.getLogger(ResenaService.class);
 
     private final ResenaRepository resenaRepository;
+    private final com.gestion.hotelera.repository.ClienteRepository clienteRepository; 
 
-    public ResenaService(ResenaRepository resenaRepository) {
+    public ResenaService(ResenaRepository resenaRepository,
+            com.gestion.hotelera.repository.ClienteRepository clienteRepository) {
         this.resenaRepository = resenaRepository;
+        this.clienteRepository = clienteRepository;
+    }
+
+    @Transactional
+    public Resena guardarResena(Resena resena, String username) {
+        
+        if (username != null) {
+            com.gestion.hotelera.model.Cliente cliente = clienteRepository.findByEmail(username)
+                    .orElseGet(() -> clienteRepository.findByUsuarioUsername(username).orElse(null));
+            if (cliente != null) {
+                resena.setCliente(cliente);
+            }
+        }
+        return guardarResena(resena);
     }
 
     @Transactional
     public Resena guardarResena(Resena resena) {
-        // Las nuevas reseñas quedan pendientes de aprobación
+        
         resena.setAprobada(false);
         resena.setFechaCreacion(LocalDateTime.now());
 
@@ -41,36 +57,64 @@ public class ResenaService {
     }
 
     @Transactional(readOnly = true)
+    public List<Resena> obtenerPorUsuario(String username) {
+        com.gestion.hotelera.model.Cliente cliente = clienteRepository.findByEmail(username)
+                .orElseGet(() -> clienteRepository.findByUsuarioUsername(username).orElse(null));
+        if (cliente == null)
+            return java.util.Collections.emptyList();
+        return resenaRepository.findByClienteId(cliente.getId());
+    }
+
+    @Transactional(readOnly = true)
     public boolean existeResenaParaReserva(Long reservaId) {
         return !resenaRepository.findByReservaId(reservaId).isEmpty();
     }
 
-    // Obtener reseñas pendientes de aprobación (para ADMIN)
     @Transactional(readOnly = true)
     public List<Resena> obtenerResenasPendientes() {
         return resenaRepository.findByAprobada(false);
     }
 
-    // Obtener reseñas aprobadas (públicas)
+    public List<Resena> obtenerAprobadas() {
+        return obtenerResenasAprobadas();
+    }
+
     @Transactional(readOnly = true)
     public List<Resena> obtenerResenasAprobadas() {
         return resenaRepository.findByAprobada(true);
     }
 
-    // Aprobar reseña (ADMIN)
     @Transactional
-    public void aprobarResena(Long resenaId) {
+    public Resena aprobarResena(Long resenaId) {
         Resena resena = resenaRepository.findById(resenaId)
                 .orElseThrow(() -> new IllegalArgumentException("Reseña no encontrada"));
         resena.setAprobada(true);
-        resenaRepository.save(resena);
+        Resena saved = resenaRepository.save(resena);
         logger.info("Reseña aprobada: ID={}", resenaId);
+        return saved;
     }
 
-    // Rechazar/eliminar reseña (ADMIN)
     @Transactional
     public void rechazarResena(Long resenaId) {
         resenaRepository.deleteById(resenaId);
         logger.info("Reseña rechazada y eliminada: ID={}", resenaId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Resena> obtenerTodas() {
+        return resenaRepository.findAll();
+    }
+
+    @Transactional
+    public Resena responderResena(Long resenaId, String respuesta) {
+        Resena resena = resenaRepository.findById(resenaId)
+                .orElseThrow(() -> new IllegalArgumentException("Reseña no encontrada"));
+        resena.setRespuesta(respuesta);
+        resena.setFechaRespuesta(LocalDateTime.now());
+        
+        if (!Boolean.TRUE.equals(resena.getAprobada())) {
+            resena.setAprobada(true);
+        }
+        return resenaRepository.save(resena);
     }
 }

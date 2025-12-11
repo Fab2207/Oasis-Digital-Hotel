@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class ReservaService {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservaService.class);
-    // Re-validated by system
+    
     private final ReservaRepository reservaRepository;
     private final AuditoriaService auditoriaService;
     private final ServicioRepository servicioRepository;
@@ -55,11 +55,18 @@ public class ReservaService {
         Long habitacionId = reserva.getHabitacion().getId();
         Long reservaId = reserva.getId();
 
-        verificarHabitacionOperativa(habitacionId);
+        com.gestion.hotelera.model.Habitacion habitacionFull = habitacionService.buscarHabitacionPorId(habitacionId)
+                .orElseThrow(() -> new IllegalArgumentException("La habitación seleccionada no existe"));
+
+        if ("MANTENIMIENTO".equalsIgnoreCase(habitacionFull.getEstado())) {
+            throw new IllegalArgumentException("La habitación seleccionada está en mantenimiento");
+        }
+        reserva.setHabitacion(habitacionFull);
+
         verificarDisponibilidadFechas(habitacionId, reserva, reservaId);
 
         try {
-            // Aumentar puntos de lealtad si es nueva reserva
+            
             if (reserva.getId() == null && reserva.getCliente() != null && reserva.getCliente().getId() != null) {
                 clienteRepository.findById(reserva.getCliente().getId()).ifPresent(clienteDb -> {
                     clienteDb.setPuntos((clienteDb.getPuntos() != null ? clienteDb.getPuntos() : 0) + 10);
@@ -170,11 +177,15 @@ public class ReservaService {
         }
         return reservaRepository.findById(id)
                 .map(reserva -> {
-                    liberarHabitacion(reserva); // Liberar habitación antes de eliminar
-                    reservaRepository.deleteById(id);
-                    auditoriaService.registrarAccion("ELIMINACION_RESERVA",
-                            "Reserva (ID: " + id + ") eliminada físicamente.", "Reserva", id);
-                    logger.info("Reserva eliminada físicamente: ID={}", id);
+
+                    reserva.setEstadoReserva(EstadoReserva.ARCHIVADA.getValor());
+                    liberarHabitacion(reserva); 
+                    reservaRepository.save(reserva);
+
+                    auditoriaService.registrarAccion("ARCHIVADO_RESERVA",
+                            "Reserva (ID: " + id + ") archivada (eliminación lógica). Mantiene historial financiero.",
+                            "Reserva", id);
+                    logger.info("Reserva archivada (soft delete): ID={}", id);
                     return true;
                 })
                 .orElse(false);
@@ -216,7 +227,6 @@ public class ReservaService {
             reserva.setFechaCheckinReal(LocalDate.now());
             reservaRepository.save(reserva);
 
-            // Actualizar estado de la habitación a OCUPADA
             if (reserva.getHabitacion() != null) {
                 habitacionService.actualizarEstadoHabitacion(reserva.getHabitacion().getId(),
                         EstadoHabitacion.OCUPADA.getValor());
@@ -265,10 +275,11 @@ public class ReservaService {
     @Transactional(readOnly = true)
     public double calcularIngresosTotales() {
         List<Reserva> reservas = reservaRepository.findAll();
-        // Sumar Total Base + Servicios - Descuentos para reservas válidas
+        
         return reservas.stream()
                 .filter(r -> EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
                         EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
+                        EstadoReserva.ARCHIVADA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
                         (EstadoReserva.PENDIENTE.getValor().equalsIgnoreCase(r.getEstadoReserva())
                                 && r.getPago() != null && "COMPLETADO".equalsIgnoreCase(r.getPago().getEstado())))
                 .mapToDouble(r -> {
@@ -293,7 +304,11 @@ public class ReservaService {
 
         reservas.stream()
                 .filter(r -> EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
-                        EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()))
+                        EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
+                        EstadoReserva.ARCHIVADA.getValor().equalsIgnoreCase(r.getEstadoReserva()) ||
+                        (EstadoReserva.PENDIENTE.getValor().equalsIgnoreCase(r.getEstadoReserva())
+                                && r.getPago() != null
+                                && "COMPLETADO".equalsIgnoreCase(r.getPago().getEstado())))
                 .forEach(r -> {
                     LocalDate fechaIngreso = r.getFechaSalidaReal() != null ? r.getFechaSalidaReal() : r.getFechaFin();
                     if (fechaIngreso != null && !fechaIngreso.isBefore(inicio) && !fechaIngreso.isAfter(fin)) {
@@ -378,16 +393,16 @@ public class ReservaService {
         return reservaRepository.countByEstadoReservaIgnoreCase(estado);
     }
 
-    // Contar check-ins: Todas las reservas vigentes (Pendientes + Activas)
     @Transactional(readOnly = true)
     public long contarCheckInsHoy() {
-        List<String> estados = Arrays.asList(EstadoReserva.PENDIENTE.getValor(), EstadoReserva.ACTIVA.getValor());
+        LocalDate hoy = LocalDate.now();
         return reservaRepository.findAll().stream()
-                .filter(r -> estados.contains(r.getEstadoReserva()))
+                .filter(r -> EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(r.getEstadoReserva()))
+                .filter(r -> hoy.equals(r.getFechaInicio())
+                        || (r.getFechaCheckinReal() != null && hoy.equals(r.getFechaCheckinReal())))
                 .count();
     }
 
-    // Contar check-outs: Reservas finalizadas HOY
     @Transactional(readOnly = true)
     public long contarCheckOutsHoy() {
         LocalDate hoy = LocalDate.now();
@@ -397,8 +412,6 @@ public class ReservaService {
                 .count();
     }
 
-    // Nueva lógica: Contar habitaciones únicas que tienen alguna reserva activa o
-    // futura (Pendiente/Activa)
     @Transactional(readOnly = true)
     public long contarHabitacionesReservadas() {
         return reservaRepository.findAll().stream()
@@ -500,8 +513,6 @@ public class ReservaService {
         });
     }
 
-    // ============== MÉTODOS PRIVADOS DE AYUDA ==============
-
     private void validarReserva(Reserva reserva) {
         if (reserva == null) {
             throw new IllegalArgumentException("La reserva no puede ser nula");
@@ -520,17 +531,6 @@ public class ReservaService {
         }
     }
 
-    private void verificarHabitacionOperativa(Long habitacionId) {
-        Optional<com.gestion.hotelera.model.Habitacion> habitacionOpt = habitacionService
-                .buscarHabitacionPorId(habitacionId);
-        if (habitacionOpt.isEmpty()) {
-            throw new IllegalArgumentException("La habitación seleccionada no existe");
-        }
-        if ("MANTENIMIENTO".equalsIgnoreCase(habitacionOpt.get().getEstado())) {
-            throw new IllegalArgumentException("La habitación seleccionada está en mantenimiento");
-        }
-    }
-
     private void verificarDisponibilidadFechas(Long habitacionId, Reserva reserva, Long reservaId) {
         List<Reserva> reservasExistentes = reservaRepository.findAll().stream()
                 .filter(r -> r.getHabitacion() != null && r.getHabitacion().getId().equals(habitacionId))
@@ -539,16 +539,13 @@ public class ReservaService {
                 .collect(Collectors.toList());
 
         for (Reserva r : reservasExistentes) {
-            // Determinar fecha fin efectiva: Si ya finalizó, usamos la salida real (libera
-            // días si salió antes)
+
             LocalDate finEfectivo = r.getFechaFin();
             if (EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva())
                     && r.getFechaSalidaReal() != null) {
                 finEfectivo = r.getFechaSalidaReal();
             }
 
-            // Se considera solapamiento si:
-            // (NuevaInicio < FinEfectivo) Y (NuevaFin > ExistenteInicio)
             if (reserva.getFechaInicio().isBefore(finEfectivo) &&
                     reserva.getFechaFin().isAfter(r.getFechaInicio())) {
                 throw new IllegalArgumentException(
@@ -558,13 +555,11 @@ public class ReservaService {
     }
 
     private void actualizarEstadoHabitacionSegunReserva(Reserva reserva) {
-        // Solo actualizar el estado físico de la habitación a OCUPADA si la reserva es
-        // para HOY
+
         LocalDate hoy = LocalDate.now();
         boolean esParaHoy = !hoy.isBefore(reserva.getFechaInicio()) && !hoy.isAfter(reserva.getFechaFin());
 
         if (esParaHoy && (EstadoReserva.ACTIVA.getValor().equalsIgnoreCase(reserva.getEstadoReserva()) ||
-                EstadoReserva.PENDIENTE.getValor().equalsIgnoreCase(reserva.getEstadoReserva()) ||
                 "PROCESANDO".equalsIgnoreCase(reserva.getEstadoReserva()))) {
             habitacionService.actualizarEstadoHabitacion(reserva.getHabitacion().getId(),
                     EstadoHabitacion.OCUPADA.getValor());
@@ -585,7 +580,7 @@ public class ReservaService {
         if (EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(reserva.getEstadoReserva())) {
             throw new IllegalStateException("No se puede cancelar una reserva finalizada");
         }
-        // Solo restringir cancelación de pagados si NO es personal del hotel
+        
         boolean esPersonal = userRole.contains("ADMIN") || userRole.contains("RECEPCIONISTA");
         if (!esPersonal && reserva.getPago() != null && "COMPLETADO".equalsIgnoreCase(reserva.getPago().getEstado())) {
             throw new IllegalStateException(
@@ -615,7 +610,6 @@ public class ReservaService {
                 String asunto;
                 String mensaje;
 
-                // Verificar si está pendiente para enviar mensaje acorde
                 if (EstadoReserva.PENDIENTE.getValor().equalsIgnoreCase(reserva.getEstadoReserva())) {
                     asunto = "Reserva Registrada - Pendiente de Pago";
                     mensaje = String.format(
@@ -634,7 +628,7 @@ public class ReservaService {
                             reserva.getFechaFin(),
                             reserva.getTotalPagar());
                 } else {
-                    // Caso por defecto (ACTIVA u otros)
+                    
                     asunto = "Confirmación de Reserva - Hotel";
                     mensaje = String.format(
                             "Estimado/a %s,\n\nSu reserva ha sido confirmada exitosamente.\n\n" +
@@ -661,27 +655,44 @@ public class ReservaService {
     private void crearNotificacionNuevaReserva(Reserva reserva) {
         if (reserva.getCliente() != null && reserva.getHabitacion() != null) {
             String nombreCliente = reserva.getCliente().getNombres() + " " + reserva.getCliente().getApellidos();
-            String mensaje = "Nueva reserva creada: " + nombreCliente +
-                    " - Habitación " + reserva.getHabitacion().getNumero();
-            notificacionService.crearNotificacion("Nueva Reserva", mensaje, "INFORMACION");
+
+            String mensajeStaff = "Nueva reserva creada: " + nombreCliente + " - Habitación "
+                    + reserva.getHabitacion().getNumero();
+            notificacionService.crearNotificacion("Nueva Reserva", mensajeStaff, "INFORMACION", "STAFF");
+
+            if (reserva.getCliente().getUsuario() != null) {
+                String usernameCliente = reserva.getCliente().getUsuario().getUsername();
+                String mensajeCliente = "Tu reserva para la habitación " + reserva.getHabitacion().getNumero()
+                        + " ha sido confirmada.";
+                notificacionService.crearNotificacion("Reserva Confirmada", mensajeCliente, "PERSONAL",
+                        usernameCliente);
+            }
         }
     }
 
     private void crearNotificacionCheckIn(Reserva reserva) {
         if (reserva.getCliente() != null && reserva.getHabitacion() != null) {
             String nombreCliente = reserva.getCliente().getNombres() + " " + reserva.getCliente().getApellidos();
-            String mensaje = "Check-in realizado: " + nombreCliente +
-                    " - Habitación " + reserva.getHabitacion().getNumero();
-            notificacionService.crearNotificacion("Check-In Realizado", mensaje, "INFORMACION");
+
+            String mensaje = "Check-in realizado: " + nombreCliente + " - Habitación "
+                    + reserva.getHabitacion().getNumero();
+            notificacionService.crearNotificacion("Check-In Realizado", mensaje, "INFORMACION", "STAFF");
         }
     }
 
     private void crearNotificacionCheckOut(Reserva reserva) {
         if (reserva.getCliente() != null && reserva.getHabitacion() != null) {
             String nombreCliente = reserva.getCliente().getNombres() + " " + reserva.getCliente().getApellidos();
-            String mensaje = "Check-out realizado: " + nombreCliente +
-                    " - Habitación " + reserva.getHabitacion().getNumero();
-            notificacionService.crearNotificacion("Check-Out Realizado", mensaje, "INFORMACION");
+
+            String mensaje = "Check-out realizado: " + nombreCliente + " - Habitación "
+                    + reserva.getHabitacion().getNumero();
+            notificacionService.crearNotificacion("Check-Out Realizado", mensaje, "INFORMACION", "STAFF");
+
+            if (reserva.getCliente().getUsuario() != null) {
+                String usernameCliente = reserva.getCliente().getUsuario().getUsername();
+                String mensajeCliente = "Gracias por tu visita. Tu Check-out se ha realizado correctamente.";
+                notificacionService.crearNotificacion("Check-out Exitoso", mensajeCliente, "PERSONAL", usernameCliente);
+            }
         }
     }
 }

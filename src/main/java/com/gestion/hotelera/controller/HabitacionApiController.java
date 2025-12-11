@@ -11,19 +11,31 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/habitaciones")
+@CrossOrigin(origins = "http://localhost:4200")
 public class HabitacionApiController {
 
     @Autowired
     private HabitacionService habitacionService;
 
-    /**
-     * Obtener habitaciones disponibles por tipo
-     */
+    @GetMapping
+    public ResponseEntity<List<RoomDTO>> obtenerTodas() {
+        List<Habitacion> habitaciones = habitacionService.obtenerTodasLasHabitaciones();
+        List<RoomDTO> dtos = habitaciones.stream()
+                .map(h -> new RoomDTO(
+                        h.getId(),
+                        h.getNumero(),
+                        h.getTipo(),
+                        h.getPrecioPorNoche(),
+                        h.getEstado()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
     @GetMapping("/disponibles")
     public ResponseEntity<List<RoomDTO>> obtenerHabitacionesDisponiblesPorTipo(
             @RequestParam("tipo") String tipo) {
         try {
-            // Obtener todas las habitaciones del tipo solicitado que estén disponibles
+            
             List<Habitacion> habitaciones = habitacionService.obtenerTodasLasHabitaciones();
 
             List<RoomDTO> habitacionesDisponibles = habitaciones.stream()
@@ -43,7 +55,67 @@ public class HabitacionApiController {
         }
     }
 
-    // DTO para respuesta JSON
+    @GetMapping("/disponibles-fechas")
+    public ResponseEntity<List<RoomDTO>> obtenerDisponiblesPorFechas(
+            @RequestParam("fechaInicio") String inicioStr,
+            @RequestParam("fechaFin") String finStr) {
+        try {
+            java.time.LocalDate inicio = java.time.LocalDate.parse(inicioStr);
+            java.time.LocalDate fin = java.time.LocalDate.parse(finStr);
+
+            List<Habitacion> disponibles = habitacionService.buscarDisponibles(inicio, fin);
+
+            List<RoomDTO> dtos = disponibles.stream().map(this::mapToDTO).collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> crear(@RequestBody Habitacion habitacion) {
+        try {
+            habitacion.setId(null); 
+            Habitacion nueva = habitacionService.crearHabitacion(habitacion);
+            return ResponseEntity.ok(mapToDTO(nueva));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RoomDTO> actualizar(@PathVariable Long id, @RequestBody Habitacion habitacion) {
+        try {
+            habitacion.setId(id);
+            Habitacion actualizada = habitacionService.actualizarHabitacion(habitacion);
+            return ResponseEntity.ok(mapToDTO(actualizada));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        try {
+            habitacionService.eliminarHabitacion(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    private RoomDTO mapToDTO(Habitacion h) {
+        return new RoomDTO(
+                h.getId(),
+                h.getNumero(),
+                h.getTipo(),
+                h.getPrecioPorNoche(),
+                h.getEstado());
+    }
+
     public static class RoomDTO {
         private Long id;
         private String numero;
@@ -59,7 +131,6 @@ public class HabitacionApiController {
             this.estado = estado;
         }
 
-        // Getters y Setters
         public Long getId() {
             return id;
         }

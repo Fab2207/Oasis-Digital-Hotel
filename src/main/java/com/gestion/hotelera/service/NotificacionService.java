@@ -23,6 +23,22 @@ public class NotificacionService {
     }
 
     @Transactional(readOnly = true)
+    public List<Notificacion> obtenerPorUsuario(String username, boolean esAdminORecep) {
+        List<Notificacion> todas = notificacionRepository.findByArchivadaOrderByFechaCreacionDesc(false);
+        if (esAdminORecep) {
+
+            return todas.stream()
+                    .filter(n -> n.getDestinatario() == null || n.getDestinatario().equals("STAFF"))
+                    .toList();
+        } else {
+            
+            return todas.stream()
+                    .filter(n -> username != null && username.equals(n.getDestinatario()))
+                    .toList();
+        }
+    }
+
+    @Transactional(readOnly = true)
     public List<Notificacion> obtenerTodas() {
         return notificacionRepository.findByArchivadaOrderByFechaCreacionDesc(false);
     }
@@ -43,11 +59,16 @@ public class NotificacionService {
     }
 
     @Transactional
-    public Notificacion crearNotificacion(String titulo, String mensaje, String tipo) {
-        Notificacion notificacion = new Notificacion(titulo, mensaje, tipo);
+    public Notificacion crearNotificacion(String titulo, String mensaje, String tipo, String destinatario) {
+        Notificacion notificacion = new Notificacion(titulo, mensaje, tipo, destinatario);
         Notificacion guardada = notificacionRepository.save(notificacion);
-        logger.debug("Notificación creada: ID={}, Tipo={}", guardada.getId(), tipo);
+        logger.debug("Notificación creada: ID={}, Tipo={}, Dest={}", guardada.getId(), tipo, destinatario);
         return guardada;
+    }
+
+    @Transactional
+    public Notificacion crearNotificacion(String titulo, String mensaje, String tipo) {
+        return crearNotificacion(titulo, mensaje, tipo, "STAFF");
     }
 
     @Transactional

@@ -25,17 +25,14 @@ public class SecurityConfig {
         private final AuthenticationProvider authenticationProvider;
         private final RateLimitingFilter rateLimitingFilter;
         private final com.gestion.hotelera.security.JwtAuthenticationFilter jwtAuthenticationFilter;
-        private final org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
         public SecurityConfig(
                         AuthenticationProvider authenticationProvider,
                         RateLimitingFilter rateLimitingFilter,
-                        com.gestion.hotelera.security.JwtAuthenticationFilter jwtAuthenticationFilter,
-                        org.springframework.security.core.userdetails.UserDetailsService userDetailsService) {
+                        com.gestion.hotelera.security.JwtAuthenticationFilter jwtAuthenticationFilter) {
                 this.authenticationProvider = authenticationProvider;
                 this.rateLimitingFilter = rateLimitingFilter;
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-                this.userDetailsService = userDetailsService;
         }
 
         @org.springframework.core.annotation.Order(1)
@@ -51,21 +48,27 @@ public class SecurityConfig {
                                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                                 .authorizeHttpRequests(auth -> auth
-                                                // API pública
+                                                
                                                 .requestMatchers("/api/auth/**", "/api/resenas/aprobadas/**")
                                                 .permitAll()
-                                                // Habitaciones: público para que el frontend pueda consultar
-                                                // disponibilidad
+
                                                 .requestMatchers("/api/habitaciones/**")
                                                 .permitAll()
-                                                // Reservas: ADMIN y RECEPCIONISTA todas, CLIENTE solo las suyas
+                                                
+                                                .requestMatchers("/api/configuracion/public")
+                                                .permitAll()
+                                                
+                                                .requestMatchers("/api/configuracion/**")
+                                                .hasRole("ADMIN")
+                                                
                                                 .requestMatchers("/api/reservas/**")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-                                                // Servicios: todos autenticados
+                                                
                                                 .requestMatchers("/api/servicios/**")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-                                                // Descuentos: solo ADMIN
-                                                .requestMatchers("/api/descuentos/**").hasAuthority("ROLE_ADMIN")
+                                                
+                                                .requestMatchers("/api/descuentos/**")
+                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
                                                 .anyRequest().authenticated())
                                 .build();
         }
@@ -78,137 +81,12 @@ public class SecurityConfig {
                                 .csrf(csrf -> csrf.disable())
                                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                                 .authorizeHttpRequests(auth -> auth
-                                                // ==== RUTAS PÚBLICAS ====
-                                                .requestMatchers("/", "/index", "/home", "/login", "/registro",
-                                                                "/logout",
-                                                                "/css/**", "/js/**", "/images/**",
-                                                                "/h2-console/**",
-                                                                "/habitaciones/publico", "/resenas/aprobadas",
-                                                                "/actuator/health", "/actuator/info")
-                                                .permitAll()
 
-                                                // API endpoints para obtener habitaciones disponibles (debe estar antes
-                                                // de reglas específicas)
-                                                .requestMatchers("/api/**")
-                                                .permitAll()
+                                                .requestMatchers("/**").permitAll()
 
-                                                // ==== ADMIN - CONTROL TOTAL ====
-                                                // Gestión de catálogo: Crear, editar y eliminar Habitaciones y
-                                                // Servicios
-                                                .requestMatchers("/habitaciones/guardar", "/habitaciones/eliminar/**",
-                                                                "/habitaciones/editar/**")
-                                                .hasAuthority("ROLE_ADMIN")
-                                                .requestMatchers("/servicios/nuevo", "/servicios/editar/**",
-                                                                "/servicios/guardar", "/servicios/*/eliminar")
-                                                .hasAuthority("ROLE_ADMIN")
-
-                                                // Control financiero: Administra Descuentos/Cupones y ve todos los
-                                                // ingresos
-                                                .requestMatchers("/descuentos/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-
-                                                // Dashboard: Accede a estadísticas en tiempo real (ocupación, ingresos,
-                                                // ventas)
-                                                .requestMatchers("/reportes/**", "/actuator/**", "/monitoreo/**")
-                                                .hasAuthority("ROLE_ADMIN")
-
-                                                // Seguridad y Auditoría: Visualiza los Logs
-                                                .requestMatchers("/auditoria/**", "/auditoria/logs/**")
-                                                .hasAuthority("ROLE_ADMIN")
-
-                                                // Moderación: Aprueba o rechaza las Reseñas
-                                                .requestMatchers("/resenas/pendientes", "/resenas/aprobar/**",
-                                                                "/resenas/rechazar/**")
-                                                .hasAuthority("ROLE_ADMIN")
-
-                                                // Gestión de empleados
-                                                .requestMatchers("/empleados/**", "/admin/**")
-                                                .hasAuthority("ROLE_ADMIN")
-
-                                                // ==== RECEPCIONISTA - OPERACIÓN DIARIA ====
-                                                // ADMIN puede realizar todas las funciones del Recepcionista
-                                                // Gestión de Reservas: Crea, modifica y cancela reservas para cualquier
-                                                // cliente
-
-                                                // Excepción: Permitir a clientes acceder a servicios de sus propias
-                                                // reservas y ver sus facturas
-                                                .requestMatchers("/reservas/*/servicios", "/reservas/*/servicios/**",
-                                                                "/reservas/factura/*", "/reservas/*/pago")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-
-                                                .requestMatchers("/reservas/*/aplicar-descuento",
-                                                                "/reservas/*/quitar-descuento")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-
-                                                // Cancelación: Permitir a clientes cancelar sus propias reservas
-                                                .requestMatchers("/reservas/cancelar/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-
-                                                .requestMatchers("/reservas/**", "/recepcion/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
-
-                                                // Ciclo de Huésped: Ejecuta el Check-in (entrada) y el Check-out
-                                                // (salida)
-                                                .requestMatchers("/reservas/checkin/**", "/reservas/checkout/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
-
-                                                // Atención y Clientes: Registra nuevos clientes y consulta el historial
-                                                // de huéspedes
-                                                .requestMatchers("/clientes/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
-
-                                                // Disponibilidad: Verifica la disponibilidad de habitaciones en tiempo
-                                                // real
-                                                .requestMatchers("/habitaciones", "/calendario/**")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA")
-                                                .requestMatchers("/servicios")
-                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPCIONISTA", "ROLE_CLIENTE")
-
-                                                // ==== CLIENTE - AUTOGESTIÓN ====
-                                                // Autogestión: Se registra, inicia sesión (Login) y gestiona los datos
-                                                // de su cuenta
-                                                .requestMatchers("/cliente/**")
-                                                .hasAuthority("ROLE_CLIENTE")
-
-                                                // Reservas Propias: Busca disponibilidad y realiza sus propias reservas
-                                                .requestMatchers("/cliente/reservas/**")
-                                                .hasAuthority("ROLE_CLIENTE")
-
-                                                // Historial: Consulta todas sus reservas pasadas y futuras
-                                                .requestMatchers("/cliente/historial")
-                                                .hasAuthority("ROLE_CLIENTE")
-
-                                                // Feedback: Deja reseñas y calificaciones sobre su estancia (sujetas a
-                                                // moderación)
-                                                .requestMatchers("/resenas/crear/**", "/resenas/guardar")
-                                                .hasAuthority("ROLE_CLIENTE")
-
-                                                // ==== DASHBOARD - TODOS AUTENTICADOS ====
-                                                .requestMatchers("/dashboard")
-                                                .authenticated()
-
-                                                // Cualquier otra ruta requiere autenticación
-                                                .anyRequest().authenticated())
+                                )
                                 .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                                .authenticationProvider(authenticationProvider)
-                                .formLogin(form -> form
-                                                .loginPage("/login")
-                                                .successHandler(roleBasedSuccessHandler())
-                                                .permitAll())
-                                .rememberMe(remember -> remember
-                                                .userDetailsService(this.userDetailsService)
-                                                .key("oasis-digital-secure")
-                                                .tokenValiditySeconds(604800) // 7 días
-                                                .alwaysRemember(true)) // Recordar siempre para evitar cierres por
-                                                                       // refresh
-                                .logout(logout -> logout
-                                                .logoutUrl("/logout")
-                                                .logoutSuccessUrl("/")
-                                                .invalidateHttpSession(true)
-                                                .clearAuthentication(true)
-                                                .deleteCookies("JSESSIONID")
-                                                .permitAll())
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .headers(headers -> headers
                                                 .frameOptions(frame -> frame.sameOrigin())
                                                 .contentTypeOptions(content -> {
@@ -240,11 +118,6 @@ public class SecurityConfig {
                 return source;
         }
 
-        /**
-         * Redirige a los usuarios según su rol después del login:
-         * - ADMIN y RECEPCIONISTA -> /dashboard
-         * - CLIENTE -> /cliente/area
-         */
         @Bean
         public AuthenticationSuccessHandler roleBasedSuccessHandler() {
                 return (request, response, authentication) -> {

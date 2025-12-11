@@ -10,9 +10,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Servicio para enviar emails automatizados mediante tareas programadas
- */
 @Service
 public class ScheduledEmailService {
 
@@ -26,18 +23,13 @@ public class ScheduledEmailService {
         this.emailService = emailService;
     }
 
-    /**
-     * Tarea programada que se ejecuta todos los días a las 9:00 AM
-     * Envía recordatorios de check-in a clientes con reservas para mañana
-     */
-    @Scheduled(cron = "0 0 9 * * ?") // Ejecutar a las 9:00 AM todos los días
+    @Scheduled(cron = "0 0 9 * * ?") 
     public void enviarRecordatoriosCheckIn() {
         log.info("=== INICIANDO ENVÍO DE RECORDATORIOS DE CHECK-IN ===");
 
         try {
             LocalDate manana = LocalDate.now().plusDays(1);
 
-            // Buscar todas las reservas pendientes que tienen check-in mañana
             List<Reserva> reservasMaana = reservaRepository.findAll().stream()
                     .filter(r -> "PENDIENTE".equalsIgnoreCase(r.getEstadoReserva()))
                     .filter(r -> r.getFechaInicio() != null && r.getFechaInicio().equals(manana))
@@ -79,18 +71,13 @@ public class ScheduledEmailService {
         }
     }
 
-    /**
-     * Tarea programada que actualiza el estado de las habitaciones
-     * Se ejecuta cada 6 horas para asegurar sincronización
-     */
-    @Scheduled(cron = "0 0 */6 * * ?") // Ejecutar cada 6 horas
+    @Scheduled(cron = "0 0 */6 * * ?") 
     public void actualizarEstadosReservas() {
         log.info("=== VERIFICANDO ESTADOS DE RESERVAS ===");
 
         try {
             LocalDate hoy = LocalDate.now();
 
-            // Buscar reservas que deberían estar finalizadas
             List<Reserva> reservasVencidas = reservaRepository.findAll().stream()
                     .filter(r -> "ACTIVA".equalsIgnoreCase(r.getEstadoReserva()) ||
                             "PENDIENTE".equalsIgnoreCase(r.getEstadoReserva()))

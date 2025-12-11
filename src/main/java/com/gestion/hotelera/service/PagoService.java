@@ -51,28 +51,22 @@ public class PagoService {
         String metodo = normalizarMetodoPago(pagoRequest);
         Reserva reserva = obtenerReserva(pagoRequest.getReservaId());
 
-        // Verificar si ya existe un pago
         Optional<Pago> pagoExistente = verificarPagoExistente(reserva.getId());
         if (pagoExistente.isPresent()) {
             return crearRespuestaPagoExistente(pagoExistente.get());
         }
 
-        // Calcular montos
         MontoPago montoPago = calcularMontos(reserva);
         logger.debug("Cálculo de pago - Base: {}, Servicios: {}, Descuento: {}, Total: {}",
                 montoPago.base, montoPago.servicios, montoPago.descuento, montoPago.total);
 
-        // Crear y guardar pago
         Pago pago = crearPago(reserva, montoPago, metodo, pagoRequest.getCanal());
         Pago pagoGuardado = guardarPago(pago);
 
-        // Actualizar reserva
         actualizarReservaConPago(reserva, pagoGuardado);
 
-        // Enviar notificación por email
         enviarNotificacionPago(reserva, montoPago.total, metodo);
-        
-        // Crear notificación en el sistema
+
         crearNotificacionPago(reserva, montoPago.total, metodo);
 
         logger.info("Pago procesado exitosamente - Pago ID: {}, Referencia: {}",
@@ -85,8 +79,6 @@ public class PagoService {
     public Optional<Pago> obtenerPagoPorReserva(Long reservaId) {
         return pagoRepository.findByReservaId(reservaId);
     }
-
-    // ============== MÉTODOS PRIVADOS DE AYUDA ==============
 
     private void validarPagoRequest(PagoRequest pagoRequest) {
         if (pagoRequest == null) {
@@ -107,7 +99,6 @@ public class PagoService {
             metodo = METODO_DEFAULT;
         }
 
-        // Actualizar ambos campos para consistencia
         pagoRequest.setMetodo(metodo);
         pagoRequest.setMetodoPago(metodo);
 
@@ -219,7 +210,6 @@ public class PagoService {
         return response;
     }
 
-    // Clase interna para encapsular los montos calculados
     private static class MontoPago {
         final double base;
         final double servicios;

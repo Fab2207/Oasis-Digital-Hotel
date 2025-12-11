@@ -53,7 +53,8 @@ class GestionEstadoHabitacionTest {
         habitacionService = new HabitacionService(
                 habitacionRepository,
                 reservaRepository,
-                auditoriaService);
+                auditoriaService,
+                notificacionService);
         reservaService = new ReservaService(
                 reservaRepository,
                 auditoriaService,

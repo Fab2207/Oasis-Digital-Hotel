@@ -28,6 +28,9 @@ public class HabitacionServiceTest {
     @Mock
     private AuditoriaService auditoriaService;
 
+    @Mock
+    private NotificacionService notificacionService;
+
     private HabitacionService habitacionService;
 
     @BeforeEach
@@ -35,7 +38,8 @@ public class HabitacionServiceTest {
         habitacionService = new HabitacionService(
                 habitacionRepository,
                 reservaRepository,
-                auditoriaService);
+                auditoriaService,
+                notificacionService);
     }
 
     @Test

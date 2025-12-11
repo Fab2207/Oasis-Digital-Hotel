@@ -1,8 +1,5 @@
 package com.gestion.hotelera.enums;
 
-/**
- * Tipos de descuento disponibles en el sistema.
- */
 public enum TipoDescuento {
     PORCENTAJE("PORCENTAJE"),
     MONTO_FIJO("MONTO_FIJO");

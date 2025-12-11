@@ -8,10 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AuditoriaRepository extends JpaRepository<Auditoria, Long> {
-    // Método mantenido por compatibilidad pero sin funcionalidad de Empleado
-    // @Deprecated
-    // Page<Auditoria> findByEmpleadoDni(String dni, Pageable pageable);
-    
+
     Page<Auditoria> findByUsuarioUsernameContainingIgnoreCase(String username, Pageable pageable);
 
     Page<Auditoria> findByTipoAccionContainingIgnoreCaseOrDetalleAccionContainingIgnoreCase(String tipoAccion,

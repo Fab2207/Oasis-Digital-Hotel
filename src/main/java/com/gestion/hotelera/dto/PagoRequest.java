@@ -38,7 +38,6 @@ public class PagoRequest {
         public void setTitular(String titular) { this.titular = titular; }
     }
 
-    // Getters and setters
     public Long getReservaId() { return reservaId; }
     public void setReservaId(Long reservaId) {
         if (reservaId != null && reservaId <= 0) {
@@ -48,12 +47,11 @@ public class PagoRequest {
     }
 
     public boolean isValid() {
-        // Validar que el ID de reserva sea válido
+        
         if (reservaId == null || reservaId <= 0) {
             return false;
         }
 
-        // Validar que al menos uno de los campos de método de pago esté presente
         boolean tieneMetodoPago = metodoPago != null && !metodoPago.trim().isEmpty();
         boolean tieneMetodo = metodo != null && !metodo.trim().isEmpty();
 

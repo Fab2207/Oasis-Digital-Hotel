@@ -55,22 +55,22 @@ public class ClienteService {
 
     @Transactional
     public Cliente crearCliente(Cliente cliente) {
+        
+        cliente.setId(null);
+
         validarClienteNoNulo(cliente);
         validarDatosCliente(cliente);
         validarDniUnico(cliente.getDni(), null);
         validarEmailUnico(cliente.getEmail(), null);
 
-        // Verificar si se enviaron datos de usuario válidos
         if (cliente.getUsuario() != null) {
             String username = cliente.getUsuario().getUsername();
             String password = cliente.getUsuario().getPassword();
 
-            // Si el nombre de usuario o contraseña están vacíos, asumimos que no se quiere
-            // crear cuenta
             if ((username == null || username.trim().isEmpty()) && (password == null || password.trim().isEmpty())) {
                 cliente.setUsuario(null);
             } else {
-                // Si hay datos, validamos y procesamos
+                
                 procesarUsuarioCliente(cliente);
             }
         }
@@ -117,6 +117,18 @@ public class ClienteService {
     }
 
     @Transactional(readOnly = true)
+    public List<Cliente> buscarClientes(String search) {
+        if (search == null || search.trim().isEmpty()) {
+            return clienteRepository.findAll();
+        }
+
+        return clienteRepository
+                .findByDniContainingIgnoreCaseOrNombresContainingIgnoreCaseOrApellidosContainingIgnoreCase(
+                        search, search, search, PageRequest.of(0, 100))
+                .getContent();
+    }
+
+    @Transactional(readOnly = true)
     public long contarClientes() {
         return clienteRepository.count();
     }
@@ -125,29 +137,21 @@ public class ClienteService {
     public boolean eliminarClientePorId(@NonNull Long id) {
         return clienteRepository.findById(id)
                 .map(cliente -> {
-                    // 1. Validar reservas activas (Check-in pendiente o en curso) -> Impide
-                    // eliminación
+
                     validarReservasActivas(cliente);
 
-                    // 2. Verificar si tiene historial financiero que debemos preservar (Reservas
-                    // FINALIZADAS)
                     boolean tieneHistorial = reservaRepository.findByCliente(cliente).stream()
                             .anyMatch(r -> EstadoReserva.FINALIZADA.getValor().equalsIgnoreCase(r.getEstadoReserva()));
 
                     Usuario usuario = cliente.getUsuario();
 
                     if (tieneHistorial) {
-                        // >>> HISTORIAL EXISTE: ANONIMIZAR (SOFT DELETE) <<<
-                        // Objetivo: Mantener la integridad de los reportes de ingresos.
 
-                        // 1. Revocar acceso (Eliminar Usuario)
                         if (usuario != null) {
                             cliente.setUsuario(null);
                             usuarioRepository.delete(usuario);
                         }
 
-                        // 2. Anonimizar datos personales para liberar DNI/Email
-                        // Generamos un DNI dummy para evitar colisiones: 9 + ID (rellenado a 7 ceros)
                         String dummyDni = String.format("9%07d", cliente.getId() % 10000000);
 
                         cliente.setNombres("Cliente");
@@ -156,15 +160,12 @@ public class ClienteService {
                         cliente.setEmail("deleted_" + cliente.getId() + "@system.local");
                         cliente.setTelefono(null);
 
-                        // 3. Guardar cambios
                         clienteRepository.save(cliente);
 
                         registrarAuditoriaEliminacion(cliente);
                         logger.info("Cliente ID={} anonimizado (historial preservado).", id);
 
                     } else {
-                        // >>> SIN HISTORIAL: ELIMINACIÓN FÍSICA (HARD DELETE) <<<
-                        // Solo tiene reservas canceladas o ninguna. Limpiamos todo.
 
                         List<Reserva> reservas = reservaRepository.findByCliente(cliente);
                         if (!reservas.isEmpty()) {
@@ -222,8 +223,6 @@ public class ClienteService {
     public Cliente obtenerPorUsername(String username) {
         return clienteRepository.findByUsuarioUsername(username).orElse(null);
     }
-
-    // ============== MÉTODOS PRIVADOS DE AYUDA ==============
 
     private void validarClienteNoNulo(Cliente cliente) {
         if (cliente == null) {
@@ -288,7 +287,7 @@ public class ClienteService {
     }
 
     private Cliente actualizarDatosCliente(Cliente clienteExistente, Cliente clienteActualizado) {
-        // Validar cambios en DNI y email
+        
         if (!clienteExistente.getDni().equals(clienteActualizado.getDni())) {
             validarDniUnico(clienteActualizado.getDni(), clienteExistente.getId());
         }
@@ -297,7 +296,6 @@ public class ClienteService {
             validarEmailUnico(clienteActualizado.getEmail(), clienteExistente.getId());
         }
 
-        // Actualizar datos
         clienteExistente.setNombres(clienteActualizado.getNombres());
         clienteExistente.setApellidos(clienteActualizado.getApellidos());
         clienteExistente.setDni(clienteActualizado.getDni());
@@ -321,8 +319,7 @@ public class ClienteService {
         if (!reservasActivas.isEmpty()) {
             throw new ClienteConReservasActivasException(cliente.getId(), reservasActivas);
         }
-        // Nota: Ya no eliminamos las reservas aquí. Eso se maneja en el método
-        // principal según el caso.
+
     }
 
     private boolean esReservaActiva(Reserva reserva) {

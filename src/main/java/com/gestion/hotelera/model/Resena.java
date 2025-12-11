@@ -19,16 +19,16 @@ public class Resena {
     private Cliente cliente;
 
     @Column(nullable = false)
-    private Integer calificacion; // 1-5
+    private Integer calificacion; 
 
     @Column(length = 1000)
     private String comentario;
 
     @Column(nullable = false)
-    private Boolean aprobada = false; // Moderación: false por defecto
+    private Boolean aprobada = false; 
 
     @Column(length = 1000)
-    private String respuesta; // Respuesta del administrador
+    private String respuesta; 
 
     private LocalDateTime fechaRespuesta;
 
@@ -39,7 +39,6 @@ public class Resena {
         fechaCreacion = LocalDateTime.now();
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }

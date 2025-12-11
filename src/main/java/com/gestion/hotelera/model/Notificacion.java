@@ -19,7 +19,7 @@ public class Notificacion {
     private String mensaje;
 
     @Column(nullable = false)
-    private String tipo; // CHECKIN, SOLICITUD, LIMPIEZA, SISTEMA
+    private String tipo; 
 
     @Column(nullable = false)
     private boolean leida = false;
@@ -30,19 +30,22 @@ public class Notificacion {
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
 
+    @Column(name = "destinatario")
+    private String destinatario; 
+
     public Notificacion() {
         this.fechaCreacion = LocalDateTime.now();
     }
 
-    public Notificacion(String titulo, String mensaje, String tipo) {
+    public Notificacion(String titulo, String mensaje, String tipo, String destinatario) {
         this.titulo = titulo;
         this.mensaje = mensaje;
         this.tipo = tipo;
+        this.destinatario = destinatario;
         this.fechaCreacion = LocalDateTime.now();
         this.leida = false;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -99,7 +102,14 @@ public class Notificacion {
         this.fechaCreacion = fechaCreacion;
     }
 
-    // Helper for view
+    public String getDestinatario() {
+        return destinatario;
+    }
+
+    public void setDestinatario(String destinatario) {
+        this.destinatario = destinatario;
+    }
+
     public String getTiempoRelativo() {
         if (fechaCreacion == null)
             return "";

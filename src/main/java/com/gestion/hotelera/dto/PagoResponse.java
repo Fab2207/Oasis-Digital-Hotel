@@ -25,7 +25,6 @@ public class PagoResponse {
         this.reservaId = reservaId;
     }
 
-    // Getters and setters
     public boolean isExito() { return exito; }
     public void setExito(boolean exito) { this.exito = exito; }
     public String getMensaje() { return mensaje; }

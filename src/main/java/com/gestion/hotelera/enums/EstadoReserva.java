@@ -4,7 +4,8 @@ public enum EstadoReserva {
     PENDIENTE("PENDIENTE"),
     ACTIVA("ACTIVA"),
     FINALIZADA("FINALIZADA"),
-    CANCELADA("CANCELADA");
+    CANCELADA("CANCELADA"),
+    ARCHIVADA("ARCHIVADA");
 
     private final String valor;
 

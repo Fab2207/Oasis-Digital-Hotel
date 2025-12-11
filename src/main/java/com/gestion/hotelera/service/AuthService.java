@@ -84,7 +84,6 @@ public class AuthService {
 
         clienteService.guardar(nuevoCliente);
 
-        // Enviar email de bienvenida al nuevo cliente
         if (emailService != null && nuevoCliente.getEmail() != null && !nuevoCliente.getEmail().trim().isEmpty()) {
             String to = nuevoCliente.getEmail();
             String nombre = nuevoCliente.getNombres();

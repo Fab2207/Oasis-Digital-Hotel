@@ -42,13 +42,31 @@ public class ServicioService {
 
     @Transactional
     public Servicio guardar(Servicio servicio) {
-        Objects.requireNonNull(servicio, "El servicio a guardar no puede ser nulo");
-        Servicio guardado = servicioRepository.save(servicio);
-        auditoriaService.registrarAccion("SERVICIO_GUARDADO",
-                "Servicio '" + guardado.getNombre() + "' actualizado/creado.",
-                "Servicio",
-                guardado.getId());
-        return guardado;
+        try {
+            Objects.requireNonNull(servicio, "El servicio a guardar no puede ser nulo");
+
+            if (servicio.getId() != null && servicio.getId() <= 0) {
+                servicio.setId(null);
+            }
+
+            Servicio guardado = servicioRepository.save(servicio);
+
+            try {
+                auditoriaService.registrarAccion("SERVICIO_GUARDADO",
+                        "Servicio '" + guardado.getNombre() + "' actualizado/creado.",
+                        "Servicio",
+                        guardado.getId());
+            } catch (Exception e) {
+                
+                System.err.println(
+                        "Error al registrar auditoria (se ignora para no afectar la transaccion): " + e.getMessage());
+            }
+
+            return guardado;
+        } catch (Exception e) {
+            e.printStackTrace(); 
+            throw new RuntimeException("Error al guardar servicio: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
@@ -78,7 +96,6 @@ public class ServicioService {
         return servicioRepository.findAllById(ids);
     }
 
-    // Métodos alias para compatibilidad con ServicioController
     public List<Servicio> obtenerTodosLosServicios() {
         return listarTodos();
     }

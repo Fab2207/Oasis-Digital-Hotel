@@ -21,23 +21,21 @@ import java.util.stream.Collectors;
 public class HabitacionService {
 
     private static final Logger logger = LoggerFactory.getLogger(HabitacionService.class);
-    // Re-validated by system
+    
     private final HabitacionRepository habitacionRepository;
     private final ReservaRepository reservaRepository;
     private final AuditoriaService auditoriaService;
+    private final NotificacionService notificacionService;
 
     public HabitacionService(HabitacionRepository habitacionRepository,
             ReservaRepository reservaRepository,
-            AuditoriaService auditoriaService) {
+            AuditoriaService auditoriaService,
+            NotificacionService notificacionService) {
         this.habitacionRepository = habitacionRepository;
         this.reservaRepository = reservaRepository;
         this.auditoriaService = auditoriaService;
+        this.notificacionService = notificacionService;
     }
-
-    // Constructor para tests eliminado - Spring necesita un solo constructor
-    // público
-    // Para tests, usa @MockBean o @TestConfiguration en lugar de un constructor
-    // adicional
 
     @Transactional
     public void inicializarHabitacionesSiNoExisten() {
@@ -47,24 +45,19 @@ public class HabitacionService {
     }
 
     private void crearHabitacionesIniciales() {
-        // 10 Habitaciones en total
-        // Simple: 50
+
         habitacionRepository.save(new Habitacion("101", "Simple", 50.0, "DISPONIBLE"));
         habitacionRepository.save(new Habitacion("102", "Simple", 50.0, "DISPONIBLE"));
 
-        // Doble: 80
         habitacionRepository.save(new Habitacion("103", "Doble", 80.0, "DISPONIBLE"));
         habitacionRepository.save(new Habitacion("104", "Doble", 80.0, "DISPONIBLE"));
 
-        // Matrimonial: 120
         habitacionRepository.save(new Habitacion("201", "Matrimonial", 120.0, "DISPONIBLE"));
         habitacionRepository.save(new Habitacion("202", "Matrimonial", 120.0, "DISPONIBLE"));
 
-        // Suite Junior: 150
         habitacionRepository.save(new Habitacion("203", "Suite Junior", 150.0, "DISPONIBLE"));
         habitacionRepository.save(new Habitacion("204", "Suite Junior", 150.0, "DISPONIBLE"));
 
-        // Suite Presidencial: 200
         habitacionRepository.save(new Habitacion("205", "Suite Presidencial", 200.0, "DISPONIBLE"));
         habitacionRepository.save(new Habitacion("206", "Suite Presidencial", 200.0, "DISPONIBLE"));
 
@@ -87,6 +80,11 @@ public class HabitacionService {
         Habitacion guardada = habitacionRepository.save(habitacion);
         auditoriaService.registrarAccion("CREACION_HABITACION",
                 "Nueva habitación: " + guardada.getNumero(), "Habitacion", guardada.getId());
+
+        if (notificacionService != null) {
+            notificacionService.crearNotificacion("Nueva Habitación",
+                    "Se ha creado la habitación " + guardada.getNumero(), "SISTEMA");
+        }
         return guardada;
     }
 
@@ -162,7 +160,6 @@ public class HabitacionService {
                 .collect(Collectors.toList());
     }
 
-    // Método sobrecargado para compatibilidad con tests
     public boolean estaDisponible(long habitacionId) {
         return estaDisponible(habitacionId, LocalDate.now(), LocalDate.now().plusDays(1));
     }
@@ -178,7 +175,6 @@ public class HabitacionService {
             throw new IllegalArgumentException("Habitación no encontrada");
         }
 
-        // Validar número único si cambió
         if (!existente.get().getNumero().equals(habitacion.getNumero())) {
             if (habitacionRepository.findByNumero(habitacion.getNumero()).isPresent()) {
                 throw new IllegalArgumentException("El número de habitación ya existe");
@@ -187,8 +183,6 @@ public class HabitacionService {
 
         Habitacion actualizada = habitacionRepository.save(habitacion);
 
-        // Actualizar precio de TODAS las habitaciones del mismo tipo si el precio
-        // cambió
         if (existente.get().getPrecioPorNoche() != null
                 && !existente.get().getPrecioPorNoche().equals(habitacion.getPrecioPorNoche())) {
             List<Habitacion> habitacionesMismoTipo = habitacionRepository.findAll().stream()
@@ -205,6 +199,11 @@ public class HabitacionService {
 
         auditoriaService.registrarAccion("ACTUALIZACION_HABITACION",
                 "Habitación actualizada: " + actualizada.getNumero(), "Habitacion", actualizada.getId());
+
+        if (notificacionService != null) {
+            notificacionService.crearNotificacion("Habitación Actualizada",
+                    "Se ha actualizado la habitación " + actualizada.getNumero(), "SISTEMA");
+        }
         return actualizada;
     }
 
@@ -215,7 +214,6 @@ public class HabitacionService {
             throw new IllegalArgumentException("Habitación no encontrada");
         }
 
-        // Verificar si tiene reservas activas
         List<Reserva> reservasActivas = reservaRepository.findAll().stream()
                 .filter(r -> r.getHabitacion() != null && r.getHabitacion().getId().equals(id))
                 .filter(r -> "ACTIVA".equals(r.getEstadoReserva()) || "PENDIENTE".equals(r.getEstadoReserva()))
@@ -228,10 +226,15 @@ public class HabitacionService {
         habitacionRepository.deleteById(id);
         auditoriaService.registrarAccion("ELIMINACION_HABITACION",
                 "Habitación eliminada: " + habitacion.get().getNumero(), "Habitacion", id);
+
+        if (notificacionService != null) {
+            notificacionService.crearNotificacion("Habitación Eliminada",
+                    "Se ha eliminado la habitación " + habitacion.get().getNumero(), "SISTEMA");
+        }
     }
 
     public List<Habitacion> obtenerHabitacionesDisponiblesParaCliente(Long clienteId) {
-        // Para clientes, mostrar solo habitaciones disponibles
+        
         return habitacionRepository.findAll().stream()
                 .filter(h -> "DISPONIBLE".equals(h.getEstado()))
                 .collect(Collectors.toList());
@@ -249,7 +252,7 @@ public class HabitacionService {
         List<Habitacion> habitaciones = habitacionRepository.findAll();
 
         for (Habitacion habitacion : habitaciones) {
-            // No tocar habitaciones en mantenimiento
+            
             if ("MANTENIMIENTO".equalsIgnoreCase(habitacion.getEstado())) {
                 continue;
             }

@@ -9,6 +9,5 @@ public interface ResenaRepository extends JpaRepository<Resena, Long> {
 
     List<Resena> findByReservaId(Long reservaId);
 
-    // Para moderación
     List<Resena> findByAprobada(Boolean aprobada);
 }
